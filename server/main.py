@@ -35,26 +35,28 @@ def parse_excel(file: UploadFile = File(...)):
         # Заменяем оставшиеся значения NaN на последний день недели (воскресенье)
         df['День'].fillna(method='ffill', inplace=True)
         
-        # Удаляем столбцы, не содержащие данных
-        df = df.dropna(axis=1, how='all')
-        
         # Проходим по столбцам, начиная с третьего
-        parsed_data = []
+        schedule_by_group = {}
         for i, row in df.iterrows():
             lesson_info = {}
-            lesson_info['День'] = row['День']
             lesson_info['Урок'] = row['Урок']
             for column, value in row.iloc[2:].items():
                 if pd.notnull(value):
-                    lesson_info[column] = value
-            parsed_data.append(lesson_info)
+                    if column in schedule_by_group:
+                        if row['День'] in schedule_by_group[column]:
+                            schedule_by_group[column][row['День']].append((row['Урок'], value))
+                        else:
+                            schedule_by_group[column][row['День']] = [(row['Урок'], value)]
+                    else:
+                        schedule_by_group[column] = {row['День']: [(row['Урок'], value)]}
         
         # Выводим данные в терминале
-        print(parsed_data)
+        print(schedule_by_group)
         
-        return parsed_data
+        return schedule_by_group
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=500)
+
 
 
 @app.post("/upload/")
