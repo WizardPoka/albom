@@ -1,3 +1,4 @@
+
 from fastapi import FastAPI, UploadFile, File, Request, HTTPException
 from fastapi.responses import JSONResponse
 import pandas as pd
@@ -9,14 +10,19 @@ from typing import Dict, List
 
 app = FastAPI()
 
-# # Регулярное выражение для извлечения текста, фамилии с инициалами и кабинета/веб-сайта
-# pattern = re.compile(r'^(.*?)\s+([А-ЯЁ][а-яё]+ [А-ЯЁ]\. [А-ЯЁ]\.)\s+(.*)$')
+pattern = re.compile(r'^(.*?)\s+([А-ЯЁ][а-яё]+(?:\s+[А-ЯЁ]\.\s?[А-ЯЁ]\.)?)\s+(.*)$')
 
-# def fill_missing_days(df):
-#     # Заменяем пропущенные значения в первом столбце дней недели
-#     df.iloc[:, 0] = df.iloc[:, 0].ffill()
-
-#     return df
+def parse_text(value: str):
+    match = pattern.search(value)
+    if value == "Военный учебный цент . Воен. к":
+        return ["Военный учебный цент." , "." , "Воен. к."]
+    elif match:
+        extracted_text = match.group(1)
+        last_name_with_initials = match.group(2)
+        cabinet_or_website = match.group(3)
+        return [extracted_text, last_name_with_initials, cabinet_or_website]
+    else:
+        return [value, None, None]
 
 def parse_excel(file: UploadFile = File(...)):
     try:
@@ -33,7 +39,8 @@ def parse_excel(file: UploadFile = File(...)):
                 df.at[i, 'День'] = current_day
         
         # Заменяем оставшиеся значения NaN на последний день недели (воскресенье)
-        df['День'].fillna(method='ffill', inplace=True)
+        df['День'].ffill(inplace=True)
+
         
         # Разделяем расписание на две недели
         first_week_df = df.iloc[:df[df['День'] == 'Сб'].index[0] + 7]
@@ -48,11 +55,11 @@ def parse_excel(file: UploadFile = File(...)):
                 if pd.notnull(value):
                     if column in first_week_schedule:
                         if row['День'] in first_week_schedule[column]:
-                            first_week_schedule[column][row['День']].append((row['Урок'], value))
+                            first_week_schedule[column][row['День']].append((row['Урок'], parse_text(value)))
                         else:
-                            first_week_schedule[column][row['День']] = [(row['Урок'], value)]
+                            first_week_schedule[column][row['День']] = [(row['Урок'], parse_text(value))]
                     else:
-                        first_week_schedule[column] = {row['День']: [(row['Урок'], value)]}
+                        first_week_schedule[column] = {row['День']: [(row['Урок'], parse_text(value))]}
         
         # Проходим по столбцам, начиная с третьего, для второй недели
         second_week_schedule = {}
@@ -63,11 +70,11 @@ def parse_excel(file: UploadFile = File(...)):
                 if pd.notnull(value):
                     if column in second_week_schedule:
                         if row['День'] in second_week_schedule[column]:
-                            second_week_schedule[column][row['День']].append((row['Урок'], value))
+                            second_week_schedule[column][row['День']].append((row['Урок'], parse_text(value)))
                         else:
-                            second_week_schedule[column][row['День']] = [(row['Урок'], value)]
+                            second_week_schedule[column][row['День']] = [(row['Урок'], parse_text(value))]
                     else:
-                        second_week_schedule[column] = {row['День']: [(row['Урок'], value)]}
+                        second_week_schedule[column] = {row['День']: [(row['Урок'], parse_text(value))]}
         
         # Выводим данные в терминале
         print("Первая неделя:", first_week_schedule)
@@ -81,7 +88,7 @@ def parse_excel(file: UploadFile = File(...)):
 @app.post("/upload/")
 async def upload_file(file: UploadFile = File(...)):
     parsed_data = parse_excel(file)
-    print(parsed_data["Первая неделя"].keys())
+    # print(parsed_data["Первая неделя"].keys())
     return parsed_data
 
 
