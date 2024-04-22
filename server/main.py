@@ -35,33 +35,53 @@ def parse_excel(file: UploadFile = File(...)):
         # Заменяем оставшиеся значения NaN на последний день недели (воскресенье)
         df['День'].fillna(method='ffill', inplace=True)
         
-        # Проходим по столбцам, начиная с третьего
-        schedule_by_group = {}
-        for i, row in df.iterrows():
+        # Разделяем расписание на две недели
+        first_week_df = df.iloc[:df[df['День'] == 'Сб'].index[0] + 7]
+        second_week_df = df.iloc[df[df['День'] == 'Сб'].index[0] + 7:]
+        
+        # Проходим по столбцам, начиная с третьего, для первой недели
+        first_week_schedule = {}
+        for i, row in first_week_df.iterrows():
             lesson_info = {}
             lesson_info['Урок'] = row['Урок']
             for column, value in row.iloc[2:].items():
                 if pd.notnull(value):
-                    if column in schedule_by_group:
-                        if row['День'] in schedule_by_group[column]:
-                            schedule_by_group[column][row['День']].append((row['Урок'], value))
+                    if column in first_week_schedule:
+                        if row['День'] in first_week_schedule[column]:
+                            first_week_schedule[column][row['День']].append((row['Урок'], value))
                         else:
-                            schedule_by_group[column][row['День']] = [(row['Урок'], value)]
+                            first_week_schedule[column][row['День']] = [(row['Урок'], value)]
                     else:
-                        schedule_by_group[column] = {row['День']: [(row['Урок'], value)]}
+                        first_week_schedule[column] = {row['День']: [(row['Урок'], value)]}
+        
+        # Проходим по столбцам, начиная с третьего, для второй недели
+        second_week_schedule = {}
+        for i, row in second_week_df.iterrows():
+            lesson_info = {}
+            lesson_info['Урок'] = row['Урок']
+            for column, value in row.iloc[2:].items():
+                if pd.notnull(value):
+                    if column in second_week_schedule:
+                        if row['День'] in second_week_schedule[column]:
+                            second_week_schedule[column][row['День']].append((row['Урок'], value))
+                        else:
+                            second_week_schedule[column][row['День']] = [(row['Урок'], value)]
+                    else:
+                        second_week_schedule[column] = {row['День']: [(row['Урок'], value)]}
         
         # Выводим данные в терминале
-        print(schedule_by_group)
+        print("Первая неделя:", first_week_schedule)
+        print("Вторая неделя:", second_week_schedule)
         
-        return schedule_by_group
+        return {"Первая неделя": first_week_schedule, "Вторая неделя": second_week_schedule}
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=500)
-
 
 
 @app.post("/upload/")
 async def upload_file(file: UploadFile = File(...)):
     parsed_data = parse_excel(file)
+    print(parsed_data["Первая неделя"].keys())
     return parsed_data
 
 
