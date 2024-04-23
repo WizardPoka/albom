@@ -1,3 +1,4 @@
+# ====================================================================================
 
 from fastapi import FastAPI, UploadFile, File, Request, HTTPException
 from fastapi.responses import JSONResponse
@@ -7,24 +8,35 @@ import io  # Импортируем модуль io
 from io import BytesIO
 import json
 from typing import Dict, List
+# ====================================================================================
 
 app = FastAPI()
 
-pattern = re.compile(r'^(.*?)\s+([А-ЯЁ][а-яё]+(?:\s+[А-ЯЁ]\.\s?[А-ЯЁ]\.)?)\s+(.*)$')
+# ====================================================================================
 
 def parse_text(value: str):
+
+    pattern = re.compile(r'^(.*?)\s+([А-ЯЁ][а-яё]+(?:\s+[А-ЯЁ]\.\s?[А-ЯЁ]\.)?)\s+(.*)$')
     match = pattern.search(value)
+
     if value == "Военный учебный цент . Воен. к":
         return ["Военный учебный цент." , "." , "Воен. к."]
+    
+    elif value == "Военный учебный цент ... Воен. к":
+        return ["Военный учебный цент." , "." , "Воен. к."]
+    
     elif match:
         extracted_text = match.group(1)
         last_name_with_initials = match.group(2)
         cabinet_or_website = match.group(3)
         return [extracted_text, last_name_with_initials, cabinet_or_website]
+    
     else:
         return [value, None, None]
+    
+# ====================================================================================
 
-def parse_excel(file: UploadFile = File(...)):
+async def parse_excel(file: UploadFile = File(...)):
     try:
         # Читаем данные из временного файла и передаем их в pd.read_excel()
         df = pd.read_excel(io.BytesIO(file.file.read()))
@@ -77,22 +89,28 @@ def parse_excel(file: UploadFile = File(...)):
                         second_week_schedule[column] = {row['День']: [(row['Урок'], parse_text(value))]}
         
         # Выводим данные в терминале
-        print("Первая неделя:", first_week_schedule)
-        print("Вторая неделя:", second_week_schedule)
+        # print("Первая неделя:", first_week_schedule)
+        # print("Вторая неделя:", second_week_schedule)
+        # print(str(len(first_week_schedule.keys())))
+        # first_week_schedule = str(len(first_week_schedule.keys()))
         
         return {"Первая неделя": first_week_schedule, "Вторая неделя": second_week_schedule}
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=500)
 
+# ====================================================================================
 
 @app.post("/upload/")
 async def upload_file(file: UploadFile = File(...)):
-    parsed_data = parse_excel(file)
-    # print(parsed_data["Первая неделя"].keys())
+    parsed_data = await parse_excel(file)
+    
     return parsed_data
 
+# ====================================================================================
 
 @app.exception_handler(Exception)
 async def error_handler(request: Request, exc: Exception):
     print(f"An error occurred: {repr(exc)}")
     return JSONResponse(content={"error": "Internal Server Error"}, status_code=500)
+
+# ====================================================================================
