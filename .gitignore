@@ -9,3 +9,11 @@ __pycache__
 t.py
 
 .gitignore
+
+/node_modules
+/client/node_modules
+
+/package-lock.json
+/package.json
+/client/src/package-lock.json
+/client/package.json

@@ -1,6 +1,7 @@
 # ====================================================================================
 
 from fastapi import FastAPI, UploadFile, File, Request, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import pandas as pd
 import re
@@ -12,6 +13,14 @@ from typing import Dict, List
 
 app = FastAPI()
 
+# Разрешить все источники
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 # ====================================================================================
 
 def parse_text(value: str):
