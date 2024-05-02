@@ -40,6 +40,12 @@ const UploadFile = () => {
     }
   };
 
+
+  const handleGroupClick = (week, group) => {
+    // Перенаправление на новую страницу с данными выбранной группы
+    window.location.href = `/schedule/${week}/${group}`;
+  };
+  
 // ====================================================================================
 
   return (
@@ -53,13 +59,21 @@ const UploadFile = () => {
       {/* Если есть расписание, отображаем его */}
       {schedule && (
         <div>
-          {/* Отображение расписания для первой недели */}
-          <h2>Первая неделя</h2>
-          <pre>{JSON.stringify(schedule['Первая неделя'], null, 2)}</pre>
-          {/* Отображение расписания для второй недели */}
-          <h2>Вторая неделя</h2>
-          <pre>{JSON.stringify(schedule['Вторая неделя'], null, 2)}</pre>
-        </div>
+        <h2>Первая неделя</h2>
+        {/* Отображение кнопок для каждого ключа первой недели */}
+        {Object.keys(schedule['Первая неделя']).map((group, index) => (
+          <button key={index} onClick={() => handleGroupClick('Первая неделя', group)}>
+            {group}
+          </button>
+        ))}
+        <h2>Вторая неделя</h2>
+        {/* Отображение кнопок для каждого ключа второй недели */}
+        {Object.keys(schedule['Вторая неделя']).map((group, index) => (
+          <button key={index} onClick={() => handleGroupClick('Вторая неделя', group)}>
+            {group}
+          </button>
+        ))}
+      </div>
       )}
     </div>
   );
