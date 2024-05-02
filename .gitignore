@@ -15,5 +15,5 @@ t.py
 
 /package-lock.json
 /package.json
-/client/src/package-lock.json
+/client/package-lock.json
 /client/package.json

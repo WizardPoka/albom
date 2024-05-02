@@ -1,3 +1,5 @@
+# uvicorn server.main:app --reload
+
 # ====================================================================================
 
 from fastapi import FastAPI, UploadFile, File, Request, HTTPException
@@ -109,10 +111,13 @@ async def parse_excel(file: UploadFile = File(...)):
 
 # ====================================================================================
 
+schedule_data = None
+
 @app.post("/upload/")
 async def upload_file(file: UploadFile = File(...)):
+    global schedule_data
     parsed_data = await parse_excel(file)
-    
+    schedule_data = parsed_data
     return parsed_data
 
 # ====================================================================================
@@ -123,3 +128,20 @@ async def error_handler(request: Request, exc: Exception):
     return JSONResponse(content={"error": "Internal Server Error"}, status_code=500)
 
 # ====================================================================================
+
+@app.get("/schedule/{week}/{group}")
+async def get_group_schedule(week: str, group: str):
+    
+    global schedule_data
+    
+    if week == 'Первая неделя':
+        group_schedule = schedule_data['Первая неделя'].get(group)
+    elif week == 'Вторая неделя':
+        group_schedule = schedule_data['Вторая неделя'].get(group)
+    else:
+        return JSONResponse(content={"error": "Неверная неделя"}, status_code=400)
+    
+    if group_schedule:
+        return JSONResponse(content=group_schedule, status_code=200)
+    else:
+        return JSONResponse(content={"error": "Расписание для выбранной группы не найдено"}, status_code=404)
