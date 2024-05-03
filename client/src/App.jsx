@@ -1,12 +1,10 @@
 //cd client >> npm start
 
-
 // ====================================================================================
 
+// App.jsx
+
 import React from 'react';
-// import './App.css';
-
-
 import { Routes, Route } from 'react-router-dom';
 import UploadFile from './UploadFile';
 import GroupSchedule from './GroupSchedule';
@@ -20,18 +18,6 @@ const App = () => {
       </Routes>
   );
 };
-
-
-// ====================================================================================
-
-// function App() {
-//   return (
-//     <div>
-//       <h1>Загрузка файла на сервер FastAPI</h1>
-//       <UploadFile />
-//     </div>
-//   );
-// }
 
 // ====================================================================================
 

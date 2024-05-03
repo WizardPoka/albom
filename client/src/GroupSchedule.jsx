@@ -1,12 +1,18 @@
+// ====================================================================================
+
 // GroupSchedule.jsx
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Link, useParams } from 'react-router-dom';
 
+// ====================================================================================
+
 const GroupSchedule = () => {
   const { group } = useParams();
   const [schedule, setSchedule] = useState(null);
+
+// ====================================================================================
 
   useEffect(() => {
     const fetchSchedule = async () => {
@@ -20,6 +26,8 @@ const GroupSchedule = () => {
 
     fetchSchedule();
   }, [group]);
+
+// ====================================================================================
 
   return (
     <div>
@@ -35,4 +43,8 @@ const GroupSchedule = () => {
   );
 };
 
+// ====================================================================================
+
 export default GroupSchedule;
+
+// ====================================================================================
