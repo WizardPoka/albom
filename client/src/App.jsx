@@ -15,7 +15,8 @@ const App = () => {
   return (
       <Routes>
         <Route path="/" element={<UploadFile />} />
-        <Route path="/schedule/:week/:group" element={<GroupSchedule />} />
+        <Route path="/schedule/group/:group" element={<GroupSchedule />} />
+
       </Routes>
   );
 };

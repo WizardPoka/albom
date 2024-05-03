@@ -1,3 +1,5 @@
+// UploadFile.jsx
+
 // ====================================================================================
 
 import React, { useState } from 'react';
@@ -43,7 +45,7 @@ const UploadFile = () => {
 
   const handleGroupClick = (week, group) => {
     // Перенаправление на новую страницу с данными выбранной группы
-    window.location.href = `/schedule/${week}/${group}`;
+    window.location.href = `/schedule/group/${group}`;
   };
   
 // ====================================================================================
@@ -59,20 +61,25 @@ const UploadFile = () => {
       {/* Если есть расписание, отображаем его */}
       {schedule && (
         <div>
+
         <h2>Первая неделя</h2>
         {/* Отображение кнопок для каждого ключа первой недели */}
+
         {Object.keys(schedule['Первая неделя']).map((group, index) => (
           <button key={index} onClick={() => handleGroupClick('Первая неделя', group)}>
             {group}
           </button>
         ))}
+
         <h2>Вторая неделя</h2>
         {/* Отображение кнопок для каждого ключа второй недели */}
+
         {Object.keys(schedule['Вторая неделя']).map((group, index) => (
           <button key={index} onClick={() => handleGroupClick('Вторая неделя', group)}>
             {group}
           </button>
         ))}
+
       </div>
       )}
     </div>

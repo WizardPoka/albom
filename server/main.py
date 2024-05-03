@@ -129,19 +129,38 @@ async def error_handler(request: Request, exc: Exception):
 
 # ====================================================================================
 
-@app.get("/schedule/{week}/{group}")
-async def get_group_schedule(week: str, group: str):
+# @app.get("/schedule/{week}/{group}")
+# async def get_group_schedule(week: str, group: str):
     
+#     global schedule_data
+    
+#     if week == 'Первая неделя':
+#         group_schedule = schedule_data['Первая неделя'].get(group)
+#     elif week == 'Вторая неделя':
+#         group_schedule = schedule_data['Вторая неделя'].get(group)
+#     else:
+#         return JSONResponse(content={"error": "Неверная неделя"}, status_code=400)
+    
+#     if group_schedule:
+#         return JSONResponse(content=group_schedule, status_code=200)
+#     else:
+#         return JSONResponse(content={"error": "Расписание для выбранной группы не найдено"}, status_code=404)
+
+
+@app.get("/schedule/group/{group}")
+async def get_group_schedule(group: str):
     global schedule_data
     
-    if week == 'Первая неделя':
-        group_schedule = schedule_data['Первая неделя'].get(group)
-    elif week == 'Вторая неделя':
-        group_schedule = schedule_data['Вторая неделя'].get(group)
+    # Проверяем наличие группы в данных
+    if group in schedule_data["Первая неделя"] and group in schedule_data["Вторая неделя"]:
+        return {
+            "Первая неделя": schedule_data["Первая неделя"].get(group),
+            "Вторая неделя": schedule_data["Вторая неделя"].get(group)
+        }
+    elif group in schedule_data["Первая неделя"]:
+        return {"Первая неделя": schedule_data["Первая неделя"].get(group)}
+    elif group in schedule_data["Вторая неделя"]:
+        return {"Вторая неделя": schedule_data["Вторая неделя"].get(group)}
     else:
-        return JSONResponse(content={"error": "Неверная неделя"}, status_code=400)
-    
-    if group_schedule:
-        return JSONResponse(content=group_schedule, status_code=200)
-    else:
-        return JSONResponse(content={"error": "Расписание для выбранной группы не найдено"}, status_code=404)
+        # Если группы нет в данных, возвращаем ошибку
+        raise HTTPException(status_code=404, detail="Расписание для выбранной группы не найдено")
