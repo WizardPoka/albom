@@ -32,7 +32,7 @@ const GroupSchedule = () => {
   return (
     <div>
       <h1>Расписание </h1>
-      <Link to="/">Назад</Link>
+      <Link to="/groups">Назад</Link>
       <h2>Расписание для - {group}</h2>
       {schedule ? (
         <pre>{JSON.stringify(schedule, null, 2)}</pre>
