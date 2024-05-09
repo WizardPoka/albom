@@ -71,7 +71,7 @@ def parse_text(value: str):
     
 # ====================================================================================
 
-async def parse_excel(file: UploadFile = File(...)):
+async def parse_excel(file: UploadFile = File(...)) -> Week:
     try:
         # Читаем данные из временного файла и передаем их в pd.read_excel()
         df = pd.read_excel(io.BytesIO(file.file.read()))
@@ -88,55 +88,69 @@ async def parse_excel(file: UploadFile = File(...)):
         # Заменяем оставшиеся значения NaN на последний день недели (воскресенье)
         df['День'].ffill(inplace=True)
 
-        # Создаем список для хранения расписания
-        weeks_schedule = []
-        
         # Разделяем расписание на две недели
         first_week_df = df.iloc[:df[df['День'] == 'Сб'].index[0] + 7]
         second_week_df = df.iloc[df[df['День'] == 'Сб'].index[0] + 7:]
-        
-        # Преобразуем данные для первой недели
-        first_week_schedule = convert_schedule_format(first_week_df)
-        weeks_schedule.append({"week": "Первая неделя", "groups": first_week_schedule})
-        
-        # Преобразуем данные для второй недели
-        second_week_schedule = convert_schedule_format(second_week_df)
-        weeks_schedule.append({"week": "Вторая неделя", "groups": second_week_schedule})
-        
-        return weeks_schedule
+
+        # Проходим по столбцам, начиная с третьего, для первой недели
+        first_week_schedule = {}
+        for i, row in first_week_df.iterrows():
+            lesson_info = {}
+            lesson_info['Урок'] = row['Урок']
+            for column, value in row.iloc[2:].items():
+                if pd.notnull(value):
+                    if column in first_week_schedule:
+                        if row['День'] in first_week_schedule[column]:
+                            first_week_schedule[column][row['День']].append((row['Урок'], parse_text(value)))
+                        else:
+                            first_week_schedule[column][row['День']] = [(row['Урок'], parse_text(value))]
+                    else:
+                        first_week_schedule[column] = {row['День']: [(row['Урок'], parse_text(value))]}
+
+        # Проходим по столбцам, начиная с третьего, для второй недели
+        second_week_schedule = {}
+        for i, row in second_week_df.iterrows():
+            lesson_info = {}
+            lesson_info['Урок'] = row['Урок']
+            for column, value in row.iloc[2:].items():
+                if pd.notnull(value):
+                    if column in second_week_schedule:
+                        if row['День'] in second_week_schedule[column]:
+                            second_week_schedule[column][row['День']].append((row['Урок'], parse_text(value)))
+                        else:
+                            second_week_schedule[column][row['День']] = [(row['Урок'], parse_text(value))]
+                    else:
+                        second_week_schedule[column] = {row['День']: [(row['Урок'], parse_text(value))]}
+
+        # Формируем объект Week с двумя неделями
+        first_week_group = Group(group="Первая неделя", days=[])
+        second_week_group = Group(group="Вторая неделя", days=[])
+
+        # Создаем список для хранения всех групп
+        all_groups = []
+
+        # Проходим по данным и формируем списки уроков для каждой недели
+        for day, schedule in first_week_schedule.items():
+            lessons = []
+            for lesson_number, lesson_info in schedule.items():
+                for lesson_data in lesson_info:
+                    classroom = lesson_data[1][2] if lesson_data[1][2] is not None else ""
+                    lesson = Lesson(
+                        number=lesson_number,
+                        lesson=lesson_data[0],
+                        teacher=lesson_data[1][0],
+                        classroom=classroom
+                    )
+                    lessons.append(lesson)
+            # Формируем объекты Group для каждой группы
+            group = Group(group=day, days=[Day(day="День", lessons=lessons)])
+            all_groups.append(group)
+
+        # Формируем объект Week с полученными группами
+        return Week(week="Расписание", groups=all_groups)
+
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=500)
-
-# Функция для преобразования формата расписания
-def convert_schedule_format(df):
-    schedule = []
-    group_column = None
-    for column in df.columns:
-        if 'группа' in column.lower():  # Проверяем, содержит ли имя столбца слово "группа"
-            group_column = column
-            break
-    if group_column is None:
-        raise ValueError("Столбец с названием группы не найден.")
-    
-    groups = df[group_column].unique()
-    for group in groups:
-        group_schedule = {"group": group, "days": []}
-        group_df = df[df[group_column] == group]
-        days = group_df['День'].unique()
-        for day in days:
-            day_schedule = {"day": day, "lessons": []}
-            day_df = group_df[group_df['День'] == day]
-            for index, row in day_df.iterrows():
-                lesson = {
-                    "number": row['Урок'],
-                    "lesson": row['Предмет'],
-                    "teacher": row['Преподаватель'],
-                    "classroom": row['Аудитория']
-                }
-                day_schedule["lessons"].append(lesson)
-            group_schedule["days"].append(day_schedule)
-        schedule.append(group_schedule)
-    return schedule
 
 # ====================================================================================
 
@@ -145,10 +159,14 @@ schedule_data = None
 
 @app.post("/upload/")
 async def upload_file(file: UploadFile = File(...)):
-    global schedule_data
-    parsed_data = await parse_excel(file)
-    schedule_data = parsed_data
-    return parsed_data
+    try:
+        global schedule_data
+        parsed_data = await parse_excel(file)
+        schedule_data = parsed_data
+        return schedule_data
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=500)
+    
 
 # ====================================================================================
 
