@@ -9,9 +9,33 @@ import pandas as pd
 import re
 import io  # Импортируем модуль io
 from io import BytesIO
+
 import json
 from typing import Dict, List
+from pydantic import BaseModel, ValidationError
 # ====================================================================================
+
+# Модель данных для урока
+class Lesson(BaseModel):
+    number: str
+    lesson: str
+    teacher: str
+    classroom: str
+
+# Модель данных для дня недели
+class Day(BaseModel):
+    day: str
+    lessons: List[Lesson]
+
+# Модель данных для группы
+class Group(BaseModel):
+    group: str
+    days: List[Day]
+
+# Модель данных для недели
+class Week(BaseModel):
+    week: str
+    groups: List[Group]
 
 app = FastAPI()
 
@@ -64,52 +88,58 @@ async def parse_excel(file: UploadFile = File(...)):
         # Заменяем оставшиеся значения NaN на последний день недели (воскресенье)
         df['День'].ffill(inplace=True)
 
+        # Создаем список для хранения расписания
+        weeks_schedule = []
         
         # Разделяем расписание на две недели
         first_week_df = df.iloc[:df[df['День'] == 'Сб'].index[0] + 7]
         second_week_df = df.iloc[df[df['День'] == 'Сб'].index[0] + 7:]
         
-        # Проходим по столбцам, начиная с третьего, для первой недели
-        first_week_schedule = {}
-        for i, row in first_week_df.iterrows():
-            lesson_info = {}
-            lesson_info['Урок'] = row['Урок']
-            for column, value in row.iloc[2:].items():
-                if pd.notnull(value):
-                    if column in first_week_schedule:
-                        if row['День'] in first_week_schedule[column]:
-                            first_week_schedule[column][row['День']].append((row['Урок'], parse_text(value)))
-                        else:
-                            first_week_schedule[column][row['День']] = [(row['Урок'], parse_text(value))]
-                    else:
-                        first_week_schedule[column] = {row['День']: [(row['Урок'], parse_text(value))]}
+        # Преобразуем данные для первой недели
+        first_week_schedule = convert_schedule_format(first_week_df)
+        weeks_schedule.append({"week": "Первая неделя", "groups": first_week_schedule})
         
-        # Проходим по столбцам, начиная с третьего, для второй недели
-        second_week_schedule = {}
-        for i, row in second_week_df.iterrows():
-            lesson_info = {}
-            lesson_info['Урок'] = row['Урок']
-            for column, value in row.iloc[2:].items():
-                if pd.notnull(value):
-                    if column in second_week_schedule:
-                        if row['День'] in second_week_schedule[column]:
-                            second_week_schedule[column][row['День']].append((row['Урок'], parse_text(value)))
-                        else:
-                            second_week_schedule[column][row['День']] = [(row['Урок'], parse_text(value))]
-                    else:
-                        second_week_schedule[column] = {row['День']: [(row['Урок'], parse_text(value))]}
+        # Преобразуем данные для второй недели
+        second_week_schedule = convert_schedule_format(second_week_df)
+        weeks_schedule.append({"week": "Вторая неделя", "groups": second_week_schedule})
         
-        # Выводим данные в терминале
-        # print("Первая неделя:", first_week_schedule)
-        # print("Вторая неделя:", second_week_schedule)
-        # print(str(len(first_week_schedule.keys())))
-        # first_week_schedule = str(len(first_week_schedule.keys()))
-        
-        return {"Первая неделя": first_week_schedule, "Вторая неделя": second_week_schedule}
+        return weeks_schedule
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=500)
 
+# Функция для преобразования формата расписания
+def convert_schedule_format(df):
+    schedule = []
+    group_column = None
+    for column in df.columns:
+        if 'группа' in column.lower():  # Проверяем, содержит ли имя столбца слово "группа"
+            group_column = column
+            break
+    if group_column is None:
+        raise ValueError("Столбец с названием группы не найден.")
+    
+    groups = df[group_column].unique()
+    for group in groups:
+        group_schedule = {"group": group, "days": []}
+        group_df = df[df[group_column] == group]
+        days = group_df['День'].unique()
+        for day in days:
+            day_schedule = {"day": day, "lessons": []}
+            day_df = group_df[group_df['День'] == day]
+            for index, row in day_df.iterrows():
+                lesson = {
+                    "number": row['Урок'],
+                    "lesson": row['Предмет'],
+                    "teacher": row['Преподаватель'],
+                    "classroom": row['Аудитория']
+                }
+                day_schedule["lessons"].append(lesson)
+            group_schedule["days"].append(day_schedule)
+        schedule.append(group_schedule)
+    return schedule
+
 # ====================================================================================
+
 
 schedule_data = None
 

@@ -2,14 +2,16 @@
 
 // UploadFile.jsx
 
-import React, { useState } from 'react';
+import React, { useState  } from 'react';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
+import { Link , useNavigate} from 'react-router-dom';
 
 // ====================================================================================
 
-const UploadFile = ({ setSchedule }) => {
 
+
+const UploadFile = ({ setSchedule }) => {
+  const navigate = useNavigate()
   const [file, setFile] = useState(null); // Состояние для хранения выбранного файла
 
 // ====================================================================================
@@ -36,6 +38,8 @@ const UploadFile = ({ setSchedule }) => {
       // Обновляем состояние расписания с данными, полученными с сервера
       // Обновляем состояние schedule
       setSchedule(response.data); 
+      navigate("/groups")
+
     } catch (error) {
       // В случае ошибки выводим ее в консоль
       console.error('Error:', error);
@@ -52,8 +56,6 @@ const UploadFile = ({ setSchedule }) => {
 
       {/* Кнопка для отправки файла на сервер */}
       <button onClick={handleSubmit}>Upload</button>
-      
-      <Link to="/groups">Перейти к списку групп</Link>
     </div>
   );
 };
