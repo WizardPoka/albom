@@ -13,6 +13,7 @@ from io import BytesIO
 import json
 from typing import Dict, List
 from pydantic import BaseModel, ValidationError
+from collections import defaultdict
 # ====================================================================================
 
 # Модель данных для урока
@@ -87,7 +88,7 @@ async def parse_excel(file: UploadFile = File(...)) -> Week:
         
         # Заменяем оставшиеся значения NaN на последний день недели (воскресенье)
         df['День'].ffill(inplace=True)
-    
+
          # Создаем список для хранения всех Week объектов
         all_weeks = []
 
@@ -138,26 +139,35 @@ async def parse_excel(file: UploadFile = File(...)) -> Week:
 # ====================================================================================
 
 def create_week_object(week_name: str, week_schedule: dict) -> Week:
-    # Создаем список для хранения всех Group объектов
-    all_groups = []
+    # Создаем словарь для хранения групп по названию
+    group_dict = defaultdict(list)
 
     # Проходим по данным и формируем списки уроков для каждой группы
     for group, group_schedule in week_schedule.items():
-        lessons = []
         for day, day_schedule in group_schedule.items():
+            lessons = []
             for lesson_info in day_schedule:
                 classroom = lesson_info[1][2] if lesson_info[1][2] is not None else ""
-                teacher = lesson_info[1][1] if lesson_info[1][1] is not None else ""  # добавляем проверку на None
+                teacher = lesson_info[1][1] if lesson_info[1][1] is not None else ""
                 lesson = Lesson(
                     number=lesson_info[0],
                     lesson=lesson_info[1][0],
-                    teacher=teacher,  # используем teacher вместо lesson_info[1][1]
+                    teacher=teacher,
                     classroom=classroom
                 )
                 lessons.append(lesson)
-            # Формируем объект Day для каждого дня
-            day_object = Day(day=day, lessons=lessons[:])  # копируем список уроков для каждого дня
-            all_groups.append(Group(group=group, days=[day_object]))  # формируем объект Group для каждой группы
+            # Обновляем объект Group для каждой группы
+            group_dict[group].append((day, lessons))
+
+    # Формируем объекты Group из словаря групп
+    all_groups = []
+    for group_name, day_lessons_list in group_dict.items():
+        group_days = defaultdict(list)
+        for day, lessons in day_lessons_list:
+            group_days[day].extend(lessons)
+        days = [Day(day=day, lessons=lessons) for day, lessons in group_days.items()]
+        group = Group(group=group_name, days=days)
+        all_groups.append(group)
 
     # Формируем объект Week с полученными группами
     return Week(week=week_name, groups=all_groups)
@@ -188,10 +198,6 @@ async def error_handler(request: Request, exc: Exception):
 
 @app.get("/schedule/group/{group}")
 async def get_group_schedule(group: str):
-    global schedule_data
-    
-    print(schedule_data)  # Для отладки - выводим данные о расписании в консоль
-    
     if schedule_data is None:
         # Если данные о расписании не загружены, возвращаем ошибку 404
         raise HTTPException(status_code=404, detail="Данные о расписании еще не загружены")
@@ -200,13 +206,28 @@ async def get_group_schedule(group: str):
         # Если данные о расписании не являются списком, возвращаем ошибку 500
         raise HTTPException(status_code=500, detail="Неправильный формат данных о расписании")
     
+    # Список для хранения найденных недель с расписанием для указанной группы
+    group_schedules = []
+
     # Поиск выбранной группы в данных о расписании
-    for week in schedule_data:
-        for group_data in week["groups"]:
-            if group_data["group"] == group:
-                return group_data
-    
-    # Если группа не найдена в данных, возвращаем ошибку 404
-    raise HTTPException(status_code=404, detail="Расписание для выбранной группы не найдено")
+    for week_schedule in schedule_data:
+        # Список для хранения расписания для текущей недели
+        current_week_schedule = []
 
+        for group_schedule in week_schedule.groups:
+            if group_schedule.group == group:
+                # Если найдена группа, добавляем расписание этой группы в текущую неделю
+                current_week_schedule.extend(group_schedule.days)
+        
+        # Если в текущей неделе было найдено расписание для выбранной группы,
+        # добавляем эту неделю в список найденных недель
+        if current_week_schedule:
+            group_schedules.append(current_week_schedule)
 
+    if not group_schedules:
+        # Если расписание для указанной группы не найдено ни в одной из недель,
+        # возвращаем ошибку 404
+        raise HTTPException(status_code=404, detail=f"Расписание для группы '{group}' не найдено")
+
+    # Возвращаем список найденных недель с расписанием для указанной группы
+    return group_schedules
