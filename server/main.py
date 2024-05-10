@@ -87,6 +87,9 @@ async def parse_excel(file: UploadFile = File(...)) -> Week:
         
         # Заменяем оставшиеся значения NaN на последний день недели (воскресенье)
         df['День'].ffill(inplace=True)
+    
+         # Создаем список для хранения всех Week объектов
+        all_weeks = []
 
         # Разделяем расписание на две недели
         first_week_df = df.iloc[:df[df['День'] == 'Сб'].index[0] + 7]
@@ -121,41 +124,47 @@ async def parse_excel(file: UploadFile = File(...)) -> Week:
                             second_week_schedule[column][row['День']] = [(row['Урок'], parse_text(value))]
                     else:
                         second_week_schedule[column] = {row['День']: [(row['Урок'], parse_text(value))]}
+        
+        # Создаем Week объекты для каждой недели и добавляем их в список
+        first_week = create_week_object("Первая неделя", first_week_schedule)
+        second_week = create_week_object("Вторая неделя", second_week_schedule)
+        all_weeks.extend([first_week, second_week])
 
-        # Формируем объект Week с двумя неделями
-        first_week_group = Group(group="Первая неделя", days=[])
-        second_week_group = Group(group="Вторая неделя", days=[])
-
-        # Создаем список для хранения всех групп
-        all_groups = []
-
-        # Проходим по данным и формируем списки уроков для каждой недели
-        for day, schedule in first_week_schedule.items():
-            lessons = []
-            for lesson_number, lesson_info in schedule.items():
-                for lesson_data in lesson_info:
-                    classroom = lesson_data[1][2] if lesson_data[1][2] is not None else ""
-                    lesson = Lesson(
-                        number=lesson_number,
-                        lesson=lesson_data[0],
-                        teacher=lesson_data[1][0],
-                        classroom=classroom
-                    )
-                    lessons.append(lesson)
-            # Формируем объекты Group для каждой группы
-            group = Group(group=day, days=[Day(day="День", lessons=lessons)])
-            all_groups.append(group)
-
-        # Формируем объект Week с полученными группами
-        return Week(week="Расписание", groups=all_groups)
+        return all_weeks
 
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=500)
 
 # ====================================================================================
 
+def create_week_object(week_name: str, week_schedule: dict) -> Week:
+    # Создаем список для хранения всех Group объектов
+    all_groups = []
 
-schedule_data = None
+    # Проходим по данным и формируем списки уроков для каждой группы
+    for group, group_schedule in week_schedule.items():
+        lessons = []
+        for day, day_schedule in group_schedule.items():
+            for lesson_info in day_schedule:
+                classroom = lesson_info[1][2] if lesson_info[1][2] is not None else ""
+                teacher = lesson_info[1][1] if lesson_info[1][1] is not None else ""  # добавляем проверку на None
+                lesson = Lesson(
+                    number=lesson_info[0],
+                    lesson=lesson_info[1][0],
+                    teacher=teacher,  # используем teacher вместо lesson_info[1][1]
+                    classroom=classroom
+                )
+                lessons.append(lesson)
+            # Формируем объект Day для каждого дня
+            day_object = Day(day=day, lessons=lessons[:])  # копируем список уроков для каждого дня
+            all_groups.append(Group(group=group, days=[day_object]))  # формируем объект Group для каждой группы
+
+    # Формируем объект Week с полученными группами
+    return Week(week=week_name, groups=all_groups)
+
+# ====================================================================================
+
+
 
 @app.post("/upload/")
 async def upload_file(file: UploadFile = File(...)):
@@ -177,38 +186,27 @@ async def error_handler(request: Request, exc: Exception):
 
 # ====================================================================================
 
-# @app.get("/schedule/{week}/{group}")
-# async def get_group_schedule(week: str, group: str):
-    
-#     global schedule_data
-    
-#     if week == 'Первая неделя':
-#         group_schedule = schedule_data['Первая неделя'].get(group)
-#     elif week == 'Вторая неделя':
-#         group_schedule = schedule_data['Вторая неделя'].get(group)
-#     else:
-#         return JSONResponse(content={"error": "Неверная неделя"}, status_code=400)
-    
-#     if group_schedule:
-#         return JSONResponse(content=group_schedule, status_code=200)
-#     else:
-#         return JSONResponse(content={"error": "Расписание для выбранной группы не найдено"}, status_code=404)
-
-
 @app.get("/schedule/group/{group}")
 async def get_group_schedule(group: str):
     global schedule_data
     
-    # Проверяем наличие группы в данных
-    if group in schedule_data["Первая неделя"] and group in schedule_data["Вторая неделя"]:
-        return {
-            "Первая неделя": schedule_data["Первая неделя"].get(group),
-            "Вторая неделя": schedule_data["Вторая неделя"].get(group)
-        }
-    elif group in schedule_data["Первая неделя"]:
-        return {"Первая неделя": schedule_data["Первая неделя"].get(group)}
-    elif group in schedule_data["Вторая неделя"]:
-        return {"Вторая неделя": schedule_data["Вторая неделя"].get(group)}
-    else:
-        # Если группы нет в данных, возвращаем ошибку
-        raise HTTPException(status_code=404, detail="Расписание для выбранной группы не найдено")
+    print(schedule_data)  # Для отладки - выводим данные о расписании в консоль
+    
+    if schedule_data is None:
+        # Если данные о расписании не загружены, возвращаем ошибку 404
+        raise HTTPException(status_code=404, detail="Данные о расписании еще не загружены")
+    
+    if not isinstance(schedule_data, list):
+        # Если данные о расписании не являются списком, возвращаем ошибку 500
+        raise HTTPException(status_code=500, detail="Неправильный формат данных о расписании")
+    
+    # Поиск выбранной группы в данных о расписании
+    for week in schedule_data:
+        for group_data in week["groups"]:
+            if group_data["group"] == group:
+                return group_data
+    
+    # Если группа не найдена в данных, возвращаем ошибку 404
+    raise HTTPException(status_code=404, detail="Расписание для выбранной группы не найдено")
+
+

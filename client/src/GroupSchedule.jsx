@@ -29,19 +29,29 @@ const GroupSchedule = () => {
 
 // ====================================================================================
 
-  return (
-    <div>
-      <h1>Расписание </h1>
-      <Link to="/groups">Назад</Link>
-      <h2>Расписание для - {group}</h2>
-      {schedule ? (
-        <pre>{JSON.stringify(schedule, null, 2)}</pre>
-      ) : (
-        <p>Loading...</p>
-      )}
-    </div>
-  );
+return (
+  <div>
+    <h1>Расписание</h1>
+    <Link to="/groups">Назад</Link>
+    <h2>Расписание для - {group}</h2>
+    {schedule ? (
+      <div>
+        <h3>Первая неделя</h3>
+        <pre>{JSON.stringify(schedule['Первая неделя'], null, 2)}</pre>
+        {schedule['Вторая неделя'] && (
+          <div>
+            <h3>Вторая неделя</h3>
+            <pre>{JSON.stringify(schedule['Вторая неделя'], null, 2)}</pre>
+          </div>
+        )}
+      </div>
+    ) : (
+      <p>Loading...</p>
+    )}
+  </div>
+);
 };
+
 
 // ====================================================================================
 
