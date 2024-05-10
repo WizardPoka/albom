@@ -1,0 +1,136 @@
+@font-face {
+    font-family: "GolosText-Regular";
+    src: local("GolosText-Regular"),
+        url('./fonts/Golos_Text/GolosText-Regular.ttf');
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    
+    margin: 0 auto;
+    padding: 20px;
+    font-family: "GolosText-Regular" ;
+    
+  }
+
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    max-width: 1000px;
+    width: 100%;
+    padding: 20px;
+    /* margin: 0px 200px; */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    
+  }
+  
+.title {
+    font-size: 2rem;
+    font-weight: bold;
+    
+  }
+  
+.week {
+    margin: 20px 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.);
+    border-radius: 5px;
+    overflow: hidden;
+    max-width: 100%;
+    box-sizing: border-box;
+    width: 100%;
+    border-radius: 10px 10px 10px 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    
+  }
+  
+.weekTitle {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+    padding: 10px;
+    background-color: #f2f2f2;
+    border-radius: 10px 10px 0px 0px;
+    
+  }
+  
+.day {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+    
+  }
+  
+.dayNumber {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    padding-top: 10px;
+    
+  }
+  
+.lessonTitle {
+    display: flex;
+    align-items: center;
+    margin: 5px;
+    padding: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    
+  }
+  
+
+.lessonTitle:nth-child(even){
+    background-color: #f2f2f2;
+}
+
+  /* .number, .lesson, .teacher, .classroom {
+    padding: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    
+  } */
+
+
+.number {
+    font-size: 1rem;
+    max-width: 60px;
+    width: 100%;
+    margin: 5px;
+  }
+
+.lesson {
+    font-size: 1rem;
+    font-weight: bold;
+    max-width: 300px;
+    width: 100%;
+    margin: 5px;
+  }
+
+.teacher {
+    font-size: 1rem;
+    max-width: 150px;
+    width: 100%;
+    margin: 5px;
+    
+  }
+
+.classroom {
+    font-size: 1rem;
+    max-width: 60px;
+    width: 100%;
+    margin: 5px;
+  }
+
+  /* 1280 для пк и планшетов в теории,  */
+  
+
+  
+ 
+
