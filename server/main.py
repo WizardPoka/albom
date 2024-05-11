@@ -19,9 +19,11 @@ from collections import defaultdict
 # Модель данных для урока
 class Lesson(BaseModel):
     number: str
+    time_lesson: str
     lesson: str
     teacher: str
     classroom: str
+    
 
 # Модель данных для дня недели
 class Day(BaseModel):
@@ -69,6 +71,21 @@ def parse_text(value: str):
     
     else:
         return [value, None, None]
+
+def get_time_for_pair(pair_number: str) -> str:
+    time_mapping = {
+        "1 пара": "09:00 - 10:35",
+        "2 пара": "10:45 - 12:20",
+        "3 пара": "13:00 - 14:35",
+        "4 пара": "14:45 - 16:20",
+        "5 пара": "16:30 - 18:05",
+        "6 пара": "18:15 - 19:50",
+        "7 пара": "20:00 - 21:35"
+    }
+    return time_mapping.get(pair_number, "")
+
+# В вашем интерфейсе добавьте элемент с классом time_lesson и отобразите там время урока
+
     
 # ====================================================================================
 
@@ -149,8 +166,11 @@ def create_week_object(week_name: str, week_schedule: dict) -> Week:
             for lesson_info in day_schedule:
                 classroom = lesson_info[1][2] if lesson_info[1][2] is not None else ""
                 teacher = lesson_info[1][1] if lesson_info[1][1] is not None else ""
+                lesson_number = lesson_info[0]
+                time_lesson = get_time_for_pair(lesson_number)
                 lesson = Lesson(
-                    number=lesson_info[0],
+                    number=lesson_number,
+                    time_lesson=time_lesson,
                     lesson=lesson_info[1][0],
                     teacher=teacher,
                     classroom=classroom
@@ -171,6 +191,7 @@ def create_week_object(week_name: str, week_schedule: dict) -> Week:
 
     # Формируем объект Week с полученными группами
     return Week(week=week_name, groups=all_groups)
+
 
 # ====================================================================================
 
