@@ -116,8 +116,17 @@ body, html {
     margin: 5px;
   }
 
+.time_lesson {
+    font-size: 0.8rem;
+    max-width: 100px;
+    /* max-width: 35px; */
+    text-align: center;
+    width: 100%;
+    margin: 5px;
+}
+
 .lesson {
-    font-size: 1rem;
+    font-size: 1.2rem;
     font-weight: bold;
     max-width: 350px;
     width: 100%;

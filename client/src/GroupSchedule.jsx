@@ -67,6 +67,9 @@ const GroupSchedule = () => {
                           <span className={styles.number}>
                             {lesson.number}
                           </span>
+                          <span className={styles.time_lesson}>
+                            {lesson.time_lesson}
+                          </span>
                           <span className={styles.lesson}>
                             {lesson.lesson}
                           </span>
