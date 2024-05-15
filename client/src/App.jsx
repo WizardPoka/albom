@@ -6,9 +6,9 @@
 
 import React, { useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import UploadFile from './UploadFile';
-import GroupSchedule from './GroupSchedule';
-import ListGroups from './ListGroups';
+import UploadFile from './components/UploadFile/UploadFile';
+import GroupSchedule from './components/GroupSchedule/GroupSchedule';
+import ListGroups from './components/ListGroups/ListGroups';
 
 // ====================================================================================
 
@@ -23,7 +23,6 @@ const App = () => {
         <Route path="/" element={<UploadFile setSchedule={setSchedule} />} />
         <Route path="/groups" element={<ListGroups schedule={schedule} />} /> 
         <Route path="/schedule/group/:group" element={<GroupSchedule />} />
-
       </Routes>
   );
 };

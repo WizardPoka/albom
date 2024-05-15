@@ -6,10 +6,10 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Link, useParams } from 'react-router-dom';
 
-
-import './fonts/Golos_Text/GolosText-Regular.ttf'
+import '../../fonts/Golos_Text/GolosText-Regular.ttf'
 import styles from './GroupSchedule.module.css';
-import imageUrl from'./image/gradient.png'
+import styles_1 from '../ListGroups/ListGroups.module.css'
+// import imageUrl from'./image/gradient.png'
 // ====================================================================================
 
 const GroupSchedule = () => {
@@ -39,7 +39,7 @@ const GroupSchedule = () => {
     <div className={styles.container}> 
         <div className={styles.header}>
           <h1 className={styles.title}>Расписание</h1>
-          <Link to="/groups">Назад</Link>
+          <Link className={styles_1.btnFlip} data-front="Назад" data-back="ВАУ" to="/groups">Назад</Link>
         </div>
         <h2>{group}</h2>
         {schedule ? (

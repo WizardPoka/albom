@@ -1,0 +1,92 @@
+@font-face {
+  font-family: "GolosText-Regular";
+  src: local("GolosText-Regular"),
+      url('../../fonts/Golos_Text/GolosText-Regular.ttf');
+}
+
+.container {
+  display: flex;
+  flex-wrap: wrap;
+  font-family: "GolosText-Regular" ;
+}
+
+.listHeader {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding: 20px;
+  margin: 30px 100px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-size: 1.2rem;
+}
+
+/* .listHeader {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 24px;
+  color: #2ecc71; 
+} */
+
+.containerGroup {
+  width: 70%;
+  margin: 0 auto; /* Центрирование контейнера */
+  padding: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  border-radius: 10px 10px 10px 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  
+}
+
+.groupButton {
+  width: calc(33.33% - 10px); /* Учитываем отступы */
+  margin-bottom: 20px;
+  text-align: center;
+  
+}
+
+.groupButton button {
+  width: 80%;
+  padding: 20px 10px;
+  border-radius: 10px; /* Скругление углов */
+  border: none;
+  /* color: white; Цвет текста кнопки */
+  cursor: pointer;
+  transition: background-color 1.3s ease; /* Плавный переход при наведении */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Тень */
+  font-size: 1rem;
+}
+
+.groupButton button:hover {
+  background-color: #2980b9; /* Цвет фона при наведении */
+}
+
+/* Переопределение стиля для кнопок, которые выбираются nth-child */
+.groupButton:nth-child(even) button:hover,
+.groupButton button:nth-of-type(3n):hover {
+  background-color: #2980b9; /* Цвет фона при наведении */
+}
+
+/* Опционально: стили для отображения на мобильных устройствах */
+@media (max-width: 768px) {
+  .container {
+    width: 100%;
+  }
+  
+  .groupButton {
+    width: calc(50% - 10px);
+  }
+}
+
+Белый оттенок кнопки
+.groupButton:nth-child(even) button {
+  background-color: #f8f9fa; 
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); 
+}
+
+/* Серый оттенок кнопки */
+.groupButton button:nth-of-type(3n) {
+  background-color: #ced4da; 
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); 
+}

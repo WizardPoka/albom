@@ -5,6 +5,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
+
+import '../../fonts/Golos_Text/GolosText-Regular.ttf'
+import styles from './ListGroups.module.css';
 // ====================================================================================
 
 const ListGroups = ({ schedule }) => {
@@ -35,24 +38,21 @@ const ListGroups = ({ schedule }) => {
 // ====================================================================================
 
   return (
-    <div>
-
-      <h2>Список групп:</h2>
-
+    <div className={styles.container}>
+      <div className={styles.listHeader}>Список групп:</div>
+      <div className={styles.containerGroup}>
       {allGroups.map((groupData, index) => (
-
-        <div key={index}>
-
+        <div key={index} className={styles.groupButton}>
           <Link to={`/schedule/group/${groupData.group}`}>
             <button>{groupData.group}</button>
           </Link>
-
         </div>
       ))}
-
+      </div>
     </div>
   );
 };
+
 // ====================================================================================
 
 export default ListGroups;
