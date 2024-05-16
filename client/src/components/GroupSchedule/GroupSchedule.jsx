@@ -41,7 +41,7 @@ const GroupSchedule = () => {
           <h1 className={styles.title}>Расписание</h1>
           <Link className={styles_1.btnFlip} data-front="Назад" data-back="ВАУ" to="/groups">Назад</Link>
         </div>
-        <h2>{group}</h2>
+        <h2>{group}</h2> 
         {schedule ? (
           <div>
             {schedule.map((weekSchedule, index) => (

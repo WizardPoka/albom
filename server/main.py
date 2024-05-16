@@ -10,35 +10,11 @@ import re
 import io  # Импортируем модуль io
 from io import BytesIO
 
-import json
-from typing import Dict, List
-from pydantic import BaseModel, ValidationError
 from collections import defaultdict
+
+from .pydantic_model import Week, Group, Day, Lesson
+from .database.database_functions import start_database, read_schedule_from_db, save_schedule_to_db 
 # ====================================================================================
-
-# Модель данных для урока
-class Lesson(BaseModel):
-    number: str
-    time_lesson: str
-    lesson: str
-    teacher: str
-    classroom: str
-    
-
-# Модель данных для дня недели
-class Day(BaseModel):
-    day: str
-    lessons: List[Lesson]
-
-# Модель данных для группы
-class Group(BaseModel):
-    group: str
-    days: List[Day]
-
-# Модель данных для недели
-class Week(BaseModel):
-    week: str
-    groups: List[Group]
 
 app = FastAPI()
 
@@ -50,6 +26,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+# ====================================================================================
+
+start_database()
+
 # ====================================================================================
 
 def parse_text(value: str):
@@ -195,14 +175,14 @@ def create_week_object(week_name: str, week_schedule: dict) -> Week:
 
 # ====================================================================================
 
-
-
 @app.post("/upload/")
 async def upload_file(file: UploadFile = File(...)):
     try:
         global schedule_data
         parsed_data = await parse_excel(file)
         schedule_data = parsed_data
+        
+        # save_schedule_to_db(schedule_data)
         return schedule_data
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=500)
@@ -219,36 +199,8 @@ async def error_handler(request: Request, exc: Exception):
 
 @app.get("/schedule/group/{group}")
 async def get_group_schedule(group: str):
-    if schedule_data is None:
-        # Если данные о расписании не загружены, возвращаем ошибку 404
-        raise HTTPException(status_code=404, detail="Данные о расписании еще не загружены")
-    
-    if not isinstance(schedule_data, list):
-        # Если данные о расписании не являются списком, возвращаем ошибку 500
-        raise HTTPException(status_code=500, detail="Неправильный формат данных о расписании")
-    
-    # Список для хранения найденных недель с расписанием для указанной группы
-    group_schedules = []
-
-    # Поиск выбранной группы в данных о расписании
-    for week_schedule in schedule_data:
-        # Список для хранения расписания для текущей недели
-        current_week_schedule = []
-
-        for group_schedule in week_schedule.groups:
-            if group_schedule.group == group:
-                # Если найдена группа, добавляем расписание этой группы в текущую неделю
-                current_week_schedule.extend(group_schedule.days)
-        
-        # Если в текущей неделе было найдено расписание для выбранной группы,
-        # добавляем эту неделю в список найденных недель
-        if current_week_schedule:
-            group_schedules.append(current_week_schedule)
-
-    if not group_schedules:
-        # Если расписание для указанной группы не найдено ни в одной из недель,
-        # возвращаем ошибку 404
+    group_schedule = read_schedule_from_db(group)
+    print(group_schedule)
+    if not group_schedule:
         raise HTTPException(status_code=404, detail=f"Расписание для группы '{group}' не найдено")
-
-    # Возвращаем список найденных недель с расписанием для указанной группы
-    return group_schedules
+    return group_schedule

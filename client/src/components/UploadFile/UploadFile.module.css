@@ -1,0 +1,31 @@
+@font-face {
+    font-family: "GolosText-Regular";
+    src: local("GolosText-Regular"),
+        url('../../fonts/Golos_Text/GolosText-Regular.ttf');
+  }
+
+.container {
+    display: flex;
+    flex-wrap: wrap;
+    font-family: "GolosText-Regular" ;
+    justify-content: center;
+  }
+  
+
+.uploadFileButton  {
+    padding: 20px 10px;
+    margin: 30px 100px;
+    border-radius: 10px; /* Скругление углов */
+    border: none;
+    cursor: pointer;
+    transition: background-color 1.3s ease; /* Плавный переход при наведении */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Тень */
+    font-size: 1rem;
+    
+  }
+
+.uploadFileButton button input {
+    border-radius: 10px; /* Скругление углов */
+    
+  }
+
