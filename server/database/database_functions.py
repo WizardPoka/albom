@@ -92,21 +92,35 @@ def save_schedule_to_db(schedule_data):
 def read_schedule_from_db(group):
     db = SessionLocal()
     group_schedule = []
-    groups = db.query(GroupModel).filter(GroupModel.group == group).all()
-    for group in groups:
-        group_data = {"group": group.group, "week": group.week.week, "days": []}
-        days = db.query(DayModel).filter(DayModel.group_id == group.id).all()
-        for day in days:
-            day_data = {"day": day.day, "lessons": []}
-            lessons = db.query(LessonModel).filter(LessonModel.day_id == day.id).all()
-            for lesson in lessons:
-                lesson_data = {"number": lesson.number, "time_lesson": lesson.time_lesson,
-                               "lesson": lesson.lesson, "teacher": lesson.teacher,
-                               "classroom": lesson.classroom}
-                day_data["lessons"].append(lesson_data)
-            group_data["days"].append(day_data)
-        group_schedule.append(group_data)
-    db.close()
+    
+    try:
+        weeks = db.query(WeekModel).all()
+
+        for week in weeks:
+            week_data = {"week": week.week, "groups": []}
+            groups = db.query(GroupModel).filter(GroupModel.group == group, GroupModel.week_id == week.id).all()
+            for group_obj in groups:
+                group_data = {"group": group_obj.group, "days": []}
+                days = db.query(DayModel).filter(DayModel.group_id == group_obj.id).all()
+                for day in days:
+                    day_data = {"day": day.day, "lessons": []}
+                    lessons = db.query(LessonModel).filter(LessonModel.day_id == day.id).all()
+                    for lesson in lessons:
+                        lesson_data = {
+                            "number": lesson.number,
+                            "time_lesson": lesson.time_lesson,
+                            "lesson": lesson.lesson,
+                            "teacher": lesson.teacher,
+                            "classroom": lesson.classroom
+                        }
+                        day_data["lessons"].append(lesson_data)
+                    group_data["days"].append(day_data)
+                week_data["groups"].append(group_data)
+            group_schedule.append(week_data)
+    
+    finally:
+        db.close()
+    
     return group_schedule
 
 # ====================================================================================
