@@ -13,7 +13,7 @@ from io import BytesIO
 from collections import defaultdict
 
 from .pydantic_model import Week, Group, Day, Lesson
-from .database.database_functions import start_database, read_schedule_from_db, save_schedule_to_db 
+from .database.database_functions import start_database, read_all_schedule_from_db, read_schedule_from_db, save_schedule_to_db, compare_schedules
 # ====================================================================================
 
 app = FastAPI()
@@ -131,6 +131,7 @@ async def parse_excel(file: UploadFile = File(...)) -> Week:
         return all_weeks
 
     except Exception as e:
+        print(f"Error in parse_excel: {e}")
         return JSONResponse(content={"error": str(e)}, status_code=500)
 
 # ====================================================================================
