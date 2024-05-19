@@ -184,6 +184,7 @@ async def upload_file(file: UploadFile = File(...)):
         schedule_data = parsed_data
         
         # save_schedule_to_db(schedule_data)
+        schedule_data = read_all_schedule_from_db()
         return schedule_data
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=500)

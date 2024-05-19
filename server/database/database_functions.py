@@ -57,6 +57,9 @@ def save_schedule_to_db(schedule_data):
         week_count = db.query(WeekModel).count()
         print(f"Records after delete - Lessons: {lesson_count}, Days: {day_count}, Groups: {group_count}, Weeks: {week_count}")
 
+        # Используем множество для отслеживания уникальных групп
+        unique_groups = set()
+
         # Добавляем новое расписание
         for week_data in schedule_data:
             week = WeekModel(week=week_data.week)
@@ -64,21 +67,32 @@ def save_schedule_to_db(schedule_data):
             db.commit()
             db.refresh(week)
             for group_data in week_data.groups:
-                group = GroupModel(group=group_data.group, week_id=week.id)
-                db.add(group)
-                db.commit()
-                db.refresh(group)
-                for day_data in group_data.days:
-                    day = DayModel(day=day_data.day, group_id=group.id)
-                    db.add(day)
+                if group_data.group in unique_groups:
+                    continue  # Пропускаем дублирующиеся группы
+                unique_groups.add(group_data.group)
+
+                existing_group = db.query(GroupModel).filter_by(group=group_data.group, week_id=week.id).first()
+                if not existing_group:
+                    group = GroupModel(group=group_data.group, week_id=week.id)
+                    db.add(group)
                     db.commit()
-                    db.refresh(day)
-                    for lesson_data in day_data.lessons:
-                        lesson = LessonModel(number=lesson_data.number, time_lesson=lesson_data.time_lesson,
-                                             lesson=lesson_data.lesson, teacher=lesson_data.teacher,
-                                             classroom=lesson_data.classroom, day_id=day.id)
-                        db.add(lesson)
+                    db.refresh(group)
+                    for day_data in group_data.days:
+                        day = DayModel(day=day_data.day, group_id=group.id)
+                        db.add(day)
                         db.commit()
+                        db.refresh(day)
+                        for lesson_data in day_data.lessons:
+                            lesson = LessonModel(
+                                number=lesson_data.number,
+                                time_lesson=lesson_data.time_lesson,
+                                lesson=lesson_data.lesson,
+                                teacher=lesson_data.teacher,
+                                classroom=lesson_data.classroom,
+                                day_id=day.id
+                            )
+                            db.add(lesson)
+                            db.commit()
     except IntegrityError as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
@@ -124,57 +138,40 @@ def read_schedule_from_db(group):
     return group_schedule
 
 # ====================================================================================
-from ..pydantic_model import Week, Group, Day, Lesson
-def read_all_schedule_from_db() -> List[Week]:
-    db = SessionLocal()
-    weeks = []
-    db_weeks = db.query(WeekModel).all()
-    for db_week in db_weeks:
-        groups = []
-        db_groups = db.query(GroupModel).filter(GroupModel.week_id == db_week.id).all()
-        for db_group in db_groups:
-            days = []
-            db_days = db.query(DayModel).filter(DayModel.group_id == db_group.id).all()
-            for db_day in db_days:
-                lessons = []
-                db_lessons = db.query(LessonModel).filter(LessonModel.day_id == db_day.id).all()
-                for db_lesson in db_lessons:
-                    lesson = Lesson(
-                        number=db_lesson.number,
-                        time_lesson=db_lesson.time_lesson,
-                        lesson=db_lesson.lesson,
-                        teacher=db_lesson.teacher,
-                        classroom=db_lesson.classroom
-                    )
-                    lessons.append(lesson)
-                day = Day(day=db_day.day, lessons=lessons)
-                days.append(day)
-            group = Group(group=db_group.group, days=days)
-            groups.append(group)
-        week = Week(week=db_week.week, groups=groups)
-        weeks.append(week)
-    db.close()
-    return weeks
 
-# def read_all_schedule_from_db():
-#     db = SessionLocal()
-#     group_schedule = []
-#     groups = db.query(GroupModel).all()
-#     for group in groups:
-#         group_data = {"group": group.group, "week": group.week.week, "days": []}
-#         days = db.query(DayModel).filter(DayModel.group_id == group.id).all()
-#         for day in days:
-#             day_data = {"day": day.day, "lessons": []}
-#             lessons = db.query(LessonModel).filter(LessonModel.day_id == day.id).all()
-#             for lesson in lessons:
-#                 lesson_data = {"number": lesson.number, "time_lesson": lesson.time_lesson,
-#                                "lesson": lesson.lesson, "teacher": lesson.teacher,
-#                                "classroom": lesson.classroom}
-#                 day_data["lessons"].append(lesson_data)
-#             group_data["days"].append(day_data)
-#         group_schedule.append(group_data)
-#     db.close()
-#     return group_schedule
+def read_all_schedule_from_db():
+    db = SessionLocal()
+    all_schedule = []
+    
+    try:
+        weeks = db.query(WeekModel).all()
+
+        for week in weeks:
+            week_data = {"week": week.week, "groups": []}
+            groups = db.query(GroupModel).filter(GroupModel.week_id == week.id).all()
+            for group_obj in groups:
+                group_data = {"group": group_obj.group, "days": []}
+                days = db.query(DayModel).filter(DayModel.group_id == group_obj.id).all()
+                for day in days:
+                    day_data = {"day": day.day, "lessons": []}
+                    lessons = db.query(LessonModel).filter(LessonModel.day_id == day.id).all()
+                    for lesson in lessons:
+                        lesson_data = {
+                            "number": lesson.number,
+                            "time_lesson": lesson.time_lesson,
+                            "lesson": lesson.lesson,
+                            "teacher": lesson.teacher,
+                            "classroom": lesson.classroom
+                        }
+                        day_data["lessons"].append(lesson_data)
+                    group_data["days"].append(day_data)
+                week_data["groups"].append(group_data)
+            all_schedule.append(week_data)
+    
+    finally:
+        db.close()
+    
+    return all_schedule
 
 # ====================================================================================
 
