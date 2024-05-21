@@ -8,6 +8,7 @@ from typing import List
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy import Table, MetaData
 
 from .database_models import Base, WeekModel, GroupModel, DayModel, LessonModel
 
@@ -15,6 +16,7 @@ from .database_models import Base, WeekModel, GroupModel, DayModel, LessonModel
 
 def start_database():
     global SessionLocal
+    global engine
     # Подключение к базе данных
     SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
     engine = create_engine(SQLALCHEMY_DATABASE_URL)
@@ -41,60 +43,57 @@ def start_database():
 
 # ====================================================================================
 
-# Функция для сохранения расписания в базе данных
+def recreate_groups_table():
+    meta = MetaData()
+    groups_table = Table('groups', meta, autoload_with=engine)
+    groups_table.drop(engine)
+    Base.metadata.create_all(bind=engine, tables=[Base.metadata.tables['groups']])
+
 def save_schedule_to_db(schedule_data):
     db = SessionLocal()
     try:
-        # Удаляем старые записи перед добавлением нового расписания
+        # Удаление старых данных
         db.query(LessonModel).delete()
         db.query(DayModel).delete()
         db.query(GroupModel).delete()
         db.query(WeekModel).delete()
         db.commit()
 
-        # Проверка, что данные действительно удалены
-        lesson_count = db.query(LessonModel).count()
-        day_count = db.query(DayModel).count()
-        group_count = db.query(GroupModel).count()
-        week_count = db.query(WeekModel).count()
-        print(f"Records after delete - Lessons: {lesson_count}, Days: {day_count}, Groups: {group_count}, Weeks: {week_count}")
+        # Пересоздание таблицы groups
+        recreate_groups_table()
 
-        # Используем множество для отслеживания уникальных групп
-        unique_groups = set()
+        print("Old records deleted and groups table recreated")
 
-        # Добавляем новое расписание
         for week_data in schedule_data:
-            week = WeekModel(week=week_data.week)
+            week = WeekModel(week=week_data.week)  # Использование week_data.week вместо week_data['week']
             db.add(week)
             db.commit()
             db.refresh(week)
-            for group_data in week_data.groups:
-                if group_data.group in unique_groups:
-                    continue  # Пропускаем дублирующиеся группы
-                unique_groups.add(group_data.group)
 
-                existing_group = db.query(GroupModel).filter_by(group=group_data.group, week_id=week.id).first()
-                if not existing_group:
-                    group = GroupModel(group=group_data.group, week_id=week.id)
-                    db.add(group)
+            for group_data in week_data.groups:  # Использование week_data.groups вместо week_data['groups']
+                group = GroupModel(group=group_data.group, week_id=week.id)  # Использование group_data.group вместо group_data['group']
+                db.add(group)
+                db.commit()
+                db.refresh(group)
+
+                for day_data in group_data.days:  # Использование group_data.days вместо group_data['days']
+                    day = DayModel(day=day_data.day, group_id=group.id)  # Использование day_data.day вместо day_data['day']
+                    db.add(day)
                     db.commit()
-                    db.refresh(group)
-                    for day_data in group_data.days:
-                        day = DayModel(day=day_data.day, group_id=group.id)
-                        db.add(day)
+                    db.refresh(day)
+
+                    for lesson_data in day_data.lessons:  # Использование day_data.lessons вместо day_data['lessons']
+                        lesson = LessonModel(
+                            number=lesson_data.number,  # Использование lesson_data.number вместо lesson_data['number']
+                            time_lesson=lesson_data.time_lesson,  # Использование lesson_data.time_lesson вместо lesson_data['time_lesson']
+                            lesson=lesson_data.lesson,  # Использование lesson_data.lesson вместо lesson_data['lesson']
+                            teacher=lesson_data.teacher,  # Использование lesson_data.teacher вместо lesson_data['teacher']
+                            classroom=lesson_data.classroom,  # Использование lesson_data.classroom вместо lesson_data['classroom']
+                            day_id=day.id
+                        )
+                        db.add(lesson)
                         db.commit()
-                        db.refresh(day)
-                        for lesson_data in day_data.lessons:
-                            lesson = LessonModel(
-                                number=lesson_data.number,
-                                time_lesson=lesson_data.time_lesson,
-                                lesson=lesson_data.lesson,
-                                teacher=lesson_data.teacher,
-                                classroom=lesson_data.classroom,
-                                day_id=day.id
-                            )
-                            db.add(lesson)
-                            db.commit()
+
     except IntegrityError as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))

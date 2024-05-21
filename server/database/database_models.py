@@ -17,7 +17,7 @@ class GroupModel(Base):
     __tablename__ = 'groups'
 
     id = Column(Integer, primary_key=True, index=True)
-    group = Column(String, unique=True)
+    group = Column(String, index=True)  # Убрано unique=True
     week_id = Column(Integer, ForeignKey('weeks.id'))
 
     week = relationship("WeekModel", back_populates="groups")
