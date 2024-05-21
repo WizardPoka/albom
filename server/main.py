@@ -5,6 +5,7 @@
 from fastapi import FastAPI, UploadFile, File, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from json import JSONDecodeError
 
 import pandas as pd
 import re
@@ -187,7 +188,7 @@ async def upload_file(file: UploadFile = File(...)):
         parsed_data = await parse_excel(file)
         schedule_data = parsed_data
         
-        # save_schedule_to_db(schedule_data)
+        save_schedule_to_db(schedule_data)
         schedule_data = read_all_schedule_from_db()
         return schedule_data
     except Exception as e:
@@ -221,3 +222,16 @@ async def get_all_groups():
     return all_groups
 
 # ====================================================================================
+
+@app.post("/save_schedule/")
+async def save_schedule(request: Request):
+    try:
+        data = await request.json()
+        if not data:
+            raise HTTPException(status_code=400, detail="Empty request body")
+        save_schedule_to_db(data)
+        return {"message": "Schedule saved successfully"}
+    except JSONDecodeError:
+        raise HTTPException(status_code=400, detail="Invalid JSON")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

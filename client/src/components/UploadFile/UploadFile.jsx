@@ -1,17 +1,14 @@
-// ====================================================================================
-
 // UploadFile.jsx
+
+// ====================================================================================
 
 import React, { useState  } from 'react';
 import axios from 'axios';
 import { Link , useNavigate} from 'react-router-dom';
 
-
 import '../../fonts/Golos_Text/GolosText-Regular.ttf'
 import styles from './UploadFile.module.css';
 // ====================================================================================
-
-
 
 const UploadFile = ({ setSchedule }) => {
   const navigate = useNavigate()

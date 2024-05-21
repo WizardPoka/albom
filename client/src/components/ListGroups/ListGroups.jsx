@@ -1,10 +1,9 @@
-// ====================================================================================
-
 // ListGroups.jsx
+
+// ====================================================================================
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-
 
 import '../../fonts/Golos_Text/GolosText-Regular.ttf'
 import styles from './ListGroups.module.css';

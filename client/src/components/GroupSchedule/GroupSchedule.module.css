@@ -1,3 +1,4 @@
+/* GroupSchedule.module.css */
 
 @font-face {
     font-family: "GolosText-Regular";
@@ -13,10 +14,6 @@ body, html {
     padding: 0;
     
   }
-
-/* .backgroundColor {
-   
-} */
 
 .container {
     display: flex;
@@ -151,8 +148,3 @@ body, html {
   }
 
   /* 1280 для пк и планшетов в теории,  */
-  
-
-  
- 
-
