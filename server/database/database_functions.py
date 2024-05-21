@@ -3,8 +3,6 @@
 # ====================================================================================
 from fastapi import HTTPException
 
-from typing import List
-
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError
@@ -102,6 +100,7 @@ def save_schedule_to_db(schedule_data):
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         db.close()
+        
 # ====================================================================================
 
 def read_schedule_from_db(group):

@@ -5,11 +5,10 @@
 from fastapi import FastAPI, UploadFile, File, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+
 import pandas as pd
 import re
-import io  # Импортируем модуль io
-from io import BytesIO
-
+import io
 from collections import defaultdict
 
 from .pydantic_model import Week, Group, Day, Lesson
@@ -212,9 +211,7 @@ async def get_group_schedule(group: str):
         raise HTTPException(status_code=404, detail=f"Расписание для группы '{group}' не найдено")
     return group_schedule
 
-
-
-
+# ====================================================================================
 
 @app.get("/groups/")
 async def get_all_groups():
@@ -223,3 +220,4 @@ async def get_all_groups():
         raise HTTPException(status_code=404, detail="Группы не найдены")
     return all_groups
 
+# ====================================================================================
