@@ -13,7 +13,12 @@ from io import BytesIO
 from collections import defaultdict
 
 from .pydantic_model import Week, Group, Day, Lesson
-from .database.database_functions import start_database, read_all_schedule_from_db, read_schedule_from_db, save_schedule_to_db, compare_schedules
+from .database.database_functions import (start_database, 
+                                          read_all_schedule_from_db, 
+                                          read_schedule_from_db, 
+                                          save_schedule_to_db, 
+                                          compare_schedules, 
+                                          read_all_groups_from_db)
 # ====================================================================================
 
 app = FastAPI()
@@ -206,3 +211,15 @@ async def get_group_schedule(group: str):
     if not group_schedule:
         raise HTTPException(status_code=404, detail=f"Расписание для группы '{group}' не найдено")
     return group_schedule
+
+
+
+
+
+@app.get("/groups/")
+async def get_all_groups():
+    all_groups = read_all_groups_from_db()
+    if not all_groups:
+        raise HTTPException(status_code=404, detail="Группы не найдены")
+    return all_groups
+

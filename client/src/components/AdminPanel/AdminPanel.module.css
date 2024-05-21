@@ -1,0 +1,27 @@
+.adminPanel {
+    padding: 20px;
+}
+
+input[type="file"] {
+    margin: 10px 0;
+}
+
+button {
+    margin-left: 10px;
+}
+
+select {
+    margin-top: 20px;
+}
+
+textarea {
+    display: block;
+    margin: 20px 0;
+    width: 100%;
+    padding: 10px;
+}
+
+h3 {
+    margin-top: 20px;
+    font-size: 1.2em;
+}

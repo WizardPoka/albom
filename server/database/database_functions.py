@@ -172,6 +172,21 @@ def read_all_schedule_from_db():
         db.close()
     
     return all_schedule
+# ====================================================================================
+
+def read_all_groups_from_db():
+    db = SessionLocal()
+    all_groups = []
+    
+    try:
+        groups = db.query(GroupModel).all()
+        for group in groups:
+            all_groups.append(group.group)
+    
+    finally:
+        db.close()
+    
+    return all_groups
 
 # ====================================================================================
 
