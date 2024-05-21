@@ -6,7 +6,7 @@ __pycache__
 
 
 ~$1.xlsx
-
+1.xlsx
 t.py
 
 /node_modules
@@ -16,5 +16,3 @@ t.py
 /package.json
 /client/package-lock.json
 /client/package.json
-
-1.xlsx

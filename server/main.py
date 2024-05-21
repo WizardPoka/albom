@@ -188,7 +188,7 @@ async def upload_file(file: UploadFile = File(...)):
         parsed_data = await parse_excel(file)
         schedule_data = parsed_data
         
-        # save_schedule_to_db(schedule_data)
+        save_schedule_to_db(schedule_data)
         schedule_data = read_all_schedule_from_db()
         return schedule_data
     except Exception as e:
