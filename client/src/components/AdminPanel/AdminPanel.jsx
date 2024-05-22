@@ -1,145 +1,156 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import styles from './AdminPanel.module.css';
+import styles from './AdminPanel.module.css'; // Assume similar styles as GroupSchedule
+import styles_1 from '../ListGroups/ListGroups.module.css';
 
 const AdminPanel = () => {
-  const [file, setFile] = useState(null);
-  const [groups, setGroups] = useState([]);
-  const [selectedGroup, setSelectedGroup] = useState(null);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editData, setEditData] = useState({});
+    const [file, setFile] = useState(null);
+    const [groups, setGroups] = useState([]);
+    const [selectedGroup, setSelectedGroup] = useState(null);
+    const [schedule, setSchedule] = useState(null);
 
-  useEffect(() => {
-    fetchGroups();
-  }, []);
-
-  const fetchGroups = async () => {
-    try {
-      const response = await axios.get('http://localhost:8000/groups/');
-      setGroups(response.data);
-    } catch (error) {
-      console.error('Error fetching groups:', error);
-    }
-  };
-
-  const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
-  };
-
-  const handleUpload = async () => {
-    const formData = new FormData();
-    formData.append('file', file);
-
-    try {
-      await axios.post('http://localhost:8000/upload/', formData);
-      alert('File uploaded successfully');
-    } catch (error) {
-      console.error('Error uploading file:', error);
-    }
-  };
-
-  const handleGroupClick = async (group) => {
-    try {
-      const response = await axios.get(`http://localhost:8000/schedule/group/${group}`);
-      setSelectedGroup(response.data);
-      setEditData(response.data);  // Сохраняем данные для редактирования
-    } catch (error) {
-      console.error('Error fetching group schedule:', error);
-    }
-  };
-
-  const handleEditClick = () => {
-    setIsEditing(true);
-    
-  };
-
-  const handleSaveClick = async () => {
-    try {
-        const payload = JSON.stringify(editData);
-        await axios.post('http://localhost:8000/save_schedule', payload, {
-            headers: {
-            'Content-Type': 'application/json'
-            }
-        });
-      
-        setIsEditing(false);
+    useEffect(() => {
         fetchGroups();
-    } catch (error) {
-        console.error('Error saving schedule:', error);
-    }
-  };
+    }, []);
 
-  const handleInputChange = (dayIndex, lessonIndex, field, value) => {
-    const newEditData = { ...editData };
-    newEditData.days[dayIndex].lessons[lessonIndex][field] = value;
-    setEditData(newEditData);
-  };
+    const fetchGroups = async () => {
+        try {
+            const response = await axios.get("http://localhost:8000/groups/");
+            setGroups(response.data);
+        } catch (error) {
+            console.error("Error fetching groups", error);
+        }
+    };
 
-  const renderGroups = () => (
-    <div>
-      {groups.map((group, index) => (
-        <button key={index} onClick={() => handleGroupClick(group)} className={styles.groupButton}>
-          {group}
-        </button>
-      ))}
-    </div>
-  );
+    const handleFileChange = (e) => {
+        setFile(e.target.files[0]);
+    };
 
-  const renderGroupDetails = () => {
-    if (!selectedGroup) return null;
-  
+    const handleUpload = async () => {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        try {
+            const response = await axios.post("http://localhost:8000/upload/", formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data"
+                }
+            });
+            console.log("File uploaded successfully", response.data);
+        } catch (error) {
+            console.error("Error uploading file", error);
+        }
+    };
+
+    const fetchSchedule = async (group) => {
+        try {
+            const response = await axios.get(`http://localhost:8000/schedule/group/${group}`);
+            setSchedule(response.data);
+        } catch (error) {
+            console.error("Error fetching schedule", error);
+        }
+    };
+
+    const handleGroupClick = (group) => {
+        if (selectedGroup === group) {
+            setSelectedGroup(null); // Collapse the group if already selected
+            setSchedule(null);
+        } else {
+            setSelectedGroup(group);
+            fetchSchedule(group);
+        }
+    };
+
+    const handleEditLesson = async (lessonId, updatedLessonData) => {
+        try {
+            const response = await axios.put(`http://localhost:8000/schedule/lesson/${lessonId}`, updatedLessonData);
+            console.log("Lesson updated successfully", response.data);
+            fetchSchedule(selectedGroup);
+        } catch (error) {
+            console.error("Error updating lesson", error);
+        }
+    };
+
     return (
-      <div>
-        <h2>{selectedGroup.group}</h2>
-        <button onClick={handleEditClick} className={styles.editButton}>Edit</button>
         <div>
-          {selectedGroup.days && selectedGroup.days.map((day, dayIndex) => (
-            <div key={dayIndex}>
-              <h3>{day.day}</h3>
-              {day.lessons.map((lesson, lessonIndex) => (
-                <div key={lessonIndex} className={styles.lesson}>
-                  <span>{lesson.number} - {lesson.lesson}</span>
-                  {isEditing && (
-                    <div className={styles.editFields}>
-                      <input
-                        type="text"
-                        value={editData.groups[0].days[dayIndex].lessons[lessonIndex].lesson}
-                        onChange={(e) => handleInputChange(0, dayIndex, lessonIndex, 'lesson', e.target.value)}
-                      />
-                      <input
-                        type="text"
-                        value={editData.groups[0].days[dayIndex].lessons[lessonIndex].teacher}
-                        onChange={(e) => handleInputChange(0, dayIndex, lessonIndex, 'teacher', e.target.value)}
-                      />
-                      <input
-                        type="text"
-                        value={editData.groups[0].days[dayIndex].lessons[lessonIndex].classroom}
-                        onChange={(e) => handleInputChange(0, dayIndex, lessonIndex, 'classroom', e.target.value)}
-                      />
-                    </div>
-                  )}
-                </div>
-              ))}
+            <h1>Admin Panel</h1>
+            <div>
+                <input type="file" onChange={handleFileChange} />
+                <button onClick={handleUpload}>Upload</button>
             </div>
-          ))}
+            <div>
+                {groups.map((group) => (
+                    <div key={group}>
+                        <button onClick={() => handleGroupClick(group)}>{group}</button>
+                        {selectedGroup === group && schedule && (
+                            <div>
+                                {schedule.map((weekSchedule, index) => (
+                                    <div key={index} className={styles.week}>
+                                        <div className={styles.weekTitle}>
+                                            {weekSchedule.week}
+                                        </div>
+                                        {weekSchedule.groups.map((groupSchedule, groupIndex) => (
+                                            <div key={groupIndex}>
+                                                {groupSchedule.days.map((daySchedule, dayIndex) => (
+                                                    <div key={dayIndex} className={styles.day}>
+                                                        <span className={styles.dayNumber}>
+                                                            {daySchedule.day}
+                                                        </span>
+                                                        <div>
+                                                            {daySchedule.lessons.map((lesson, lessonIndex) => (
+                                                                <li key={lessonIndex} className={styles.lessonTitle}>
+                                                                    <span className={styles.number}>
+                                                                        {lesson.number}
+                                                                    </span>
+                                                                    <span className={styles.time_lesson}>
+                                                                        {lesson.time_lesson}
+                                                                    </span>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={lesson.lesson}
+                                                                        onChange={(e) =>
+                                                                            handleEditLesson(lesson.lessonId, {
+                                                                                ...lesson,
+                                                                                lesson: e.target.value
+                                                                            })
+                                                                        }
+                                                                    />
+                                                                    <input
+                                                                        type="text"
+                                                                        value={lesson.teacher}
+                                                                        onChange={(e) =>
+                                                                            handleEditLesson(lesson.lessonId, {
+                                                                                ...lesson,
+                                                                                teacher: e.target.value
+                                                                            })
+                                                                        }
+                                                                    />
+                                                                    <input
+                                                                        type="text"
+                                                                        value={lesson.classroom}
+                                                                        onChange={(e) =>
+                                                                            handleEditLesson(lesson.lessonId, {
+                                                                                ...lesson,
+                                                                                classroom: e.target.value
+                                                                            })
+                                                                        }
+                                                                    />
+                                                                </li>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ))}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                ))}
+            </div>
         </div>
-        {isEditing && (
-          <button onClick={handleSaveClick} className={styles.saveButton}>Save</button>
-        )}
-      </div>
     );
-  };
-  
-
-  return (
-    <div className={styles.adminPanel}>
-      <h1>Admin Panel</h1>
-      <input type="file" onChange={handleFileChange} />
-      <button onClick={handleUpload} className={styles.uploadButton}>Upload</button>
-      {renderGroups()}
-      {renderGroupDetails()}
-    </div>
-  );
 };
 
 export default AdminPanel;

@@ -178,6 +178,12 @@ def create_week_object(week_name: str, week_schedule: dict) -> Week:
     # Формируем объект Week с полученными группами
     return Week(week=week_name, groups=all_groups)
 
+# ====================================================================================
+
+@app.exception_handler(Exception)
+async def error_handler(request: Request, exc: Exception):
+    print(f"An error occurred: {repr(exc)}")
+    return JSONResponse(content={"error": "Internal Server Error"}, status_code=500)
 
 # ====================================================================================
 
@@ -193,14 +199,6 @@ async def upload_file(file: UploadFile = File(...)):
         return schedule_data
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=500)
-    
-
-# ====================================================================================
-
-@app.exception_handler(Exception)
-async def error_handler(request: Request, exc: Exception):
-    print(f"An error occurred: {repr(exc)}")
-    return JSONResponse(content={"error": "Internal Server Error"}, status_code=500)
 
 # ====================================================================================
 
@@ -223,15 +221,15 @@ async def get_all_groups():
 
 # ====================================================================================
 
-@app.post("/save_schedule/")
-async def save_schedule(request: Request):
-    try:
-        data = await request.json()
-        if not data:
-            raise HTTPException(status_code=400, detail="Empty request body")
-        save_schedule_to_db(data)
-        return {"message": "Schedule saved successfully"}
-    except JSONDecodeError:
-        raise HTTPException(status_code=400, detail="Invalid JSON")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+# @app.post("/save_schedule/")
+# async def save_schedule(request: Request):
+#     try:
+#         data = await request.json()
+#         if not data:
+#             raise HTTPException(status_code=400, detail="Empty request body")
+#         save_schedule_to_db(data)
+#         return {"message": "Schedule saved successfully"}
+#     except JSONDecodeError:
+#         raise HTTPException(status_code=400, detail="Invalid JSON")
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))

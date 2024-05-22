@@ -35,10 +35,12 @@ const UploadFile = ({ setSchedule }) => {
           'Content-Type': 'multipart/form-data' // Устанавливаем заголовок для формы данных
         }
       });
+
       // Обновляем состояние расписания с данными, полученными с сервера
-      // Обновляем состояние schedule
-      setSchedule(response.data); 
-      navigate("/groups")
+      const scheduleData = response.data;
+      setSchedule(scheduleData); 
+      localStorage.setItem('schedule', JSON.stringify(scheduleData)); // Save to local storage
+      navigate("/groups");
 
     } catch (error) {
       // В случае ошибки выводим ее в консоль

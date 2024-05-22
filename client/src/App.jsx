@@ -4,7 +4,7 @@
 
 // ====================================================================================
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import UploadFile from './components/UploadFile/UploadFile';
 import GroupSchedule from './components/GroupSchedule/GroupSchedule';
@@ -13,8 +13,14 @@ import AdminPanel from './components/AdminPanel/AdminPanel';
 // ====================================================================================
 
 const App = () => {
-
   const [schedule, setSchedule] = useState(null);
+
+  useEffect(() => {
+    const savedSchedule = localStorage.getItem('schedule');
+    if (savedSchedule) {
+      setSchedule(JSON.parse(savedSchedule));
+    }
+  }, []);
 
 // ====================================================================================
 
