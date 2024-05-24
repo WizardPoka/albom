@@ -226,7 +226,9 @@ async def search_teachers(query: str):
     teachers = search_teachers_in_db(query)
     if not teachers:
         raise HTTPException(status_code=404, detail="Преподаватели не найдены")
-    return teachers
+    
+    filtered_teachers = [teacher for teacher in teachers if query.lower() in teacher.lower()]
+    return filtered_teachers
 
 # ====================================================================================
 

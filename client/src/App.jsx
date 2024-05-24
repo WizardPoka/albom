@@ -9,6 +9,7 @@ import { Routes, Route } from 'react-router-dom';
 import UploadFile from './components/UploadFile/UploadFile';
 import GroupSchedule from './components/GroupSchedule/GroupSchedule';
 import ListGroups from './components/ListGroups/ListGroups';
+import TeacherSchedulePage from './components/TeacherSchedulePage';
 // ====================================================================================
 
 const App = () => {
@@ -28,6 +29,7 @@ const App = () => {
         <Route path="/" element={<UploadFile setSchedule={setSchedule} />} />
         <Route path="/groups" element={<ListGroups schedule={schedule} />} /> 
         <Route path="/schedule/group/:group" element={<GroupSchedule />} />
+        <Route path="/schedule/teacher/:teacher" element={<TeacherSchedulePage />} />
       </Routes>
   );
 };

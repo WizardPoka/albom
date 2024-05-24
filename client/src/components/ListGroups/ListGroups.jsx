@@ -57,7 +57,7 @@ const ListGroups = ({ schedule }) => {
         <div>
             <h1>Поиск Расписания Преподавателей</h1>
             <TeacherSearch setTeacherSchedule={setTeacherSchedule} />
-            <TeacherSchedule schedule={teacherSchedule} />
+            {/* <TeacherSchedule schedule={teacherSchedule} /> */}
         </div>
 
       <div className={styles.listHeader}>Список групп:</div>
