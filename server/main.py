@@ -16,7 +16,8 @@ from .database.database_functions import (start_database,
                                           read_all_schedule_from_db, 
                                           read_schedule_from_db, 
                                           save_schedule_to_db,  
-                                          read_all_groups_from_db)
+                                          read_all_groups_from_db,
+                                          search_teachers_in_db, get_teacher_schedule_from_db)
 
 # ====================================================================================
 
@@ -219,3 +220,19 @@ async def get_all_groups():
     return all_groups
 
 # ====================================================================================
+
+@app.get("/search/teachers/")
+async def search_teachers(query: str):
+    teachers = search_teachers_in_db(query)
+    if not teachers:
+        raise HTTPException(status_code=404, detail="Преподаватели не найдены")
+    return teachers
+
+# ====================================================================================
+
+@app.get("/schedule/teacher/{teacher}")
+async def get_teacher_schedule(teacher: str):
+    teacher_schedule = get_teacher_schedule_from_db(teacher)
+    if not teacher_schedule:
+        raise HTTPException(status_code=404, detail=f"Расписание для преподавателя '{teacher}' не найдено")
+    return teacher_schedule

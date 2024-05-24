@@ -9,7 +9,6 @@ import { Routes, Route } from 'react-router-dom';
 import UploadFile from './components/UploadFile/UploadFile';
 import GroupSchedule from './components/GroupSchedule/GroupSchedule';
 import ListGroups from './components/ListGroups/ListGroups';
-import AdminPanel from './components/AdminPanel/AdminPanel';
 // ====================================================================================
 
 const App = () => {

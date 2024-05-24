@@ -191,4 +191,34 @@ def read_all_groups_from_db():
 
 # ====================================================================================
 
+def search_teachers_in_db(query: str):
+    db = SessionLocal()
+    try:
+        teachers = db.query(LessonModel.teacher).filter(LessonModel.teacher.like(f'{query}%')).distinct().all()
+        print(teachers)
+        return [teacher[0] for teacher in teachers]
+    finally:
+        db.close()
 
+
+def get_teacher_schedule_from_db(teacher: str):
+    db = SessionLocal()
+    teacher_schedule = []
+    try:
+        lessons = db.query(LessonModel).filter(LessonModel.teacher == teacher).all()
+        for lesson in lessons:
+            day = db.query(DayModel).filter(DayModel.id == lesson.day_id).first()
+            group = db.query(GroupModel).filter(GroupModel.id == day.group_id).first()
+            week = db.query(WeekModel).filter(WeekModel.id == group.week_id).first()
+            teacher_schedule.append({
+                "week": week.week,
+                "group": group.group,
+                "day": day.day,
+                "number": lesson.number,
+                "time_lesson": lesson.time_lesson,
+                "lesson": lesson.lesson,
+                "classroom": lesson.classroom
+            })
+        return teacher_schedule
+    finally:
+        db.close()
