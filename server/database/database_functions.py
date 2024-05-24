@@ -7,6 +7,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import Table, MetaData
+from sqlalchemy import func
 
 from .database_models import Base, WeekModel, GroupModel, DayModel, LessonModel
 

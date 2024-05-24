@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import {useNavigate} from 'react-router-dom';
+import styles from './TeacherSearch.module.css';
 
 const TeacherSearch = ({ setTeacherSchedule }) => {
     const [query, setQuery] = useState('');
@@ -32,17 +33,18 @@ const TeacherSearch = ({ setTeacherSchedule }) => {
     };
 
     return (
-        <div>
+        <div className={styles.container}>
             <input
+                className={styles.input}
                 type="text"
                 value={query}
                 onChange={handleChange}
                 placeholder="Поиск преподавателя..."
             />
-            {notFound && <p>Преподаватель не найден</p>}  {/* Сообщение "не найдено" */}
-            <ul>
+            {notFound && <p className={styles.notFound}>Преподаватель не найден</p>}  {/* Сообщение "не найдено" */}
+            <ul className={styles.list}>
                 {teachers.map((teacher) => (
-                    <li key={teacher} onClick={() => handleSelect(teacher)}>
+                    <li className={styles.listItem} key={teacher} onClick={() => handleSelect(teacher)}>
                         {teacher}
                     </li>
                 ))}
