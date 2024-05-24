@@ -25,7 +25,43 @@
     margin-bottom: 10px;
 }
 
+.groupBlock {
+    margin-top: 15px;
+}
+
+.groupTitle {
+    font-size: 1.25rem;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+.dayBlock {
+    margin-top: 10px;
+    padding-left: 20px;
+}
+
+.dayTitle {
+    font-size: 1.1rem;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+.scheduleDetailsContainer {
+    margin-bottom: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.scheduleDetailBox {
+    background-color: #e9e9e9;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
 .scheduleDetails {
     font-size: 1rem;
-    margin-bottom: 5px;
+    margin: 0;
 }
