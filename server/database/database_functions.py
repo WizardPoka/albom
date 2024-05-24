@@ -174,6 +174,7 @@ def read_all_schedule_from_db():
     return all_schedule
 # ====================================================================================
 
+# выводит список групп
 def read_all_groups_from_db():
     db = SessionLocal()
     all_groups = []
@@ -190,92 +191,4 @@ def read_all_groups_from_db():
 
 # ====================================================================================
 
-def compare_schedules(schedule1, schedule2):
-    if len(schedule1) != len(schedule2):
-        print(f"Количество недель не совпадает: {len(schedule1)} vs {len(schedule2)}")
-        return False
 
-    for week1, week2 in zip(schedule1, schedule2):
-        if week1.week != week2.week:
-            print(f"Недели не совпадают: {week1.week} vs {week2.week}")
-            return False
-
-        if len(week1.groups) != len(week2.groups):
-            print(f"Количество групп в неделе {week1.week} не совпадает: {len(week1.groups)} vs {len(week2.groups)}")
-            return False
-
-        for group1, group2 in zip(week1.groups, week2.groups):
-            if group1.group != group2.group:
-                print(f"Группы не совпадают: {group1.group} vs {group2.group}")
-                return False
-
-            if len(group1.days) != len(group2.days):
-                print(f"Количество дней для группы {group1.group} не совпадает: {len(group1.days)} vs {len(group2.days)}")
-                return False
-
-            for day1, day2 in zip(group1.days, group2.days):
-                if day1.day != day2.day:
-                    print(f"Дни не совпадают: {day1.day} vs {day2.day} для группы {group1.group}")
-                    return False
-
-                if len(day1.lessons) != len(day2.lessons):
-                    print(f"Количество уроков для дня {day1.day} группы {group1.group} не совпадает: {len(day1.lessons)} vs {len(day2.lessons)}")
-                    return False
-
-                for lesson1, lesson2 in zip(day1.lessons, day2.lessons):
-                    if lesson1 != lesson2:
-                        print(f"Уроки не совпадают для {day1.day} группы {group1.group}: {lesson1} vs {lesson2}")
-                        return False
-
-    return True
-
-# ====================================================================================
-
-from pydantic import BaseModel
-
-class LessonUpdate(BaseModel):
-    id: str  # Добавим поле id
-    lesson: str
-    teacher: str
-    classroom: str
-    number: str
-    time_lesson: str
-
-def update_group_schedule_in_db(group: str, day: str, schedule_update: list[LessonUpdate]):
-    db = SessionLocal()
-
-    try:
-        # Найти группу и день по имени
-        group_obj = db.query(GroupModel).filter(GroupModel.group == group).first()
-        if not group_obj:
-            raise HTTPException(status_code=404, detail=f"Group '{group}' not found")
-
-        day_obj = db.query(DayModel).filter(DayModel.day == day, DayModel.group_id == group_obj.id).first()
-        if not day_obj:
-            raise HTTPException(status_code=404, detail=f"Day '{day}' for group '{group}' not found")
-
-        # Удаление старых данных для данного дня
-        db.query(LessonModel).filter(LessonModel.day_id == day_obj.id).delete()
-        db.commit()
-
-        # Добавление новых данных
-        for lesson_data in schedule_update:
-            lesson = LessonModel(
-                number=lesson_data.number,
-                time_lesson=lesson_data.time_lesson,
-                lesson=lesson_data.lesson,
-                teacher=lesson_data.teacher,
-                classroom=lesson_data.classroom,
-                day_id=day_obj.id
-            )
-            db.add(lesson)
-        db.commit()
-
-    except IntegrityError as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        db.close()
