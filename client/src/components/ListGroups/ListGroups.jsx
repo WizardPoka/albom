@@ -5,12 +5,17 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
+import TeacherSearch from '../TeacherSearch';
+import TeacherSchedule from '../TeacherSchedule';
+
 import '../../fonts/Golos_Text/GolosText-Regular.ttf'
 import styles from './ListGroups.module.css';
 // ====================================================================================
 
 const ListGroups = ({ schedule }) => {
   const [allGroups, setAllGroups] = useState([]);
+
+  const [teacherSchedule, setTeacherSchedule] = useState([]);
 
   useEffect(() => {
     if (!schedule) {
@@ -48,6 +53,13 @@ const ListGroups = ({ schedule }) => {
 
   return (
     <div className={styles.container}>
+
+        <div>
+            <h1>Поиск Расписания Преподавателей</h1>
+            <TeacherSearch setTeacherSchedule={setTeacherSchedule} />
+            <TeacherSchedule schedule={teacherSchedule} />
+        </div>
+
       <div className={styles.listHeader}>Список групп:</div>
       <div className={styles.containerGroup}>
       {allGroups.map((groupData, index) => (
