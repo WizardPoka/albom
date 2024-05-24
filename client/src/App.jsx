@@ -29,7 +29,7 @@ const App = () => {
         <Route path="/" element={<UploadFile setSchedule={setSchedule} />} />
         <Route path="/groups" element={<ListGroups schedule={schedule} />} /> 
         <Route path="/schedule/group/:group" element={<GroupSchedule />} />
-        <Route path="/admin" element={<AdminPanel />} />
+        {/* <Route path="/admin" element={<AdminPanel />} /> */}
       </Routes>
   );
 };

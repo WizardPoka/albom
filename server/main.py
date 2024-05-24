@@ -18,7 +18,9 @@ from .database.database_functions import (start_database,
                                           read_schedule_from_db, 
                                           save_schedule_to_db, 
                                           compare_schedules, 
-                                          read_all_groups_from_db)
+                                          read_all_groups_from_db,
+                                          update_group_schedule_in_db)
+
 # ====================================================================================
 
 app = FastAPI()
@@ -221,15 +223,23 @@ async def get_all_groups():
 
 # ====================================================================================
 
-# @app.post("/save_schedule/")
-# async def save_schedule(request: Request):
+# from pydantic import BaseModel
+# class LessonUpdate(BaseModel):
+#     lesson: str
+#     teacher: str
+#     classroom: str
+#     number: str
+#     time_lesson: str
+
+# # ====================================================================================
+
+# # Маршрут для обновления расписания группы по дням
+# @app.put("/schedule/group/{group}/day/{day}")
+# async def update_group_schedule(group: str, day: str, schedule_update: list[LessonUpdate]):
 #     try:
-#         data = await request.json()
-#         if not data:
-#             raise HTTPException(status_code=400, detail="Empty request body")
-#         save_schedule_to_db(data)
-#         return {"message": "Schedule saved successfully"}
-#     except JSONDecodeError:
-#         raise HTTPException(status_code=400, detail="Invalid JSON")
+#         update_group_schedule_in_db(group, day, schedule_update)
+#         return {"message": "Group schedule updated successfully"}
 #     except Exception as e:
-#         raise HTTPException(status_code=500, detail=str(e))
+#         return JSONResponse(content={"error": str(e)}, status_code=500)
+
+# # ====================================================================================

@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import styles from './AdminPanel.module.css'; // Assume similar styles as GroupSchedule
-import styles_1 from '../ListGroups/ListGroups.module.css';
 
 const AdminPanel = () => {
     const [file, setFile] = useState(null);
     const [groups, setGroups] = useState([]);
     const [selectedGroup, setSelectedGroup] = useState(null);
     const [schedule, setSchedule] = useState(null);
+    const [editedSchedule, setEditedSchedule] = useState(null);
 
     useEffect(() => {
         fetchGroups();
@@ -46,6 +46,7 @@ const AdminPanel = () => {
         try {
             const response = await axios.get(`http://localhost:8000/schedule/group/${group}`);
             setSchedule(response.data);
+            setEditedSchedule(response.data);
         } catch (error) {
             console.error("Error fetching schedule", error);
         }
@@ -53,23 +54,44 @@ const AdminPanel = () => {
 
     const handleGroupClick = (group) => {
         if (selectedGroup === group) {
-            setSelectedGroup(null); // Collapse the group if already selected
+            setSelectedGroup(null);
             setSchedule(null);
+            setEditedSchedule(null);
         } else {
             setSelectedGroup(group);
             fetchSchedule(group);
         }
     };
 
-    const handleEditLesson = async (lessonId, updatedLessonData) => {
+    const handleEditChange = (weekIndex, groupIndex, dayIndex, lessonIndex, field, value) => {
+        const newSchedule = [...editedSchedule];
+        newSchedule[weekIndex].groups[groupIndex].days[dayIndex].lessons[lessonIndex][field] = value;
+        setEditedSchedule(newSchedule);
+    };
+
+    const handleSave = async () => {
         try {
-            const response = await axios.put(`http://localhost:8000/schedule/lesson/${lessonId}`, updatedLessonData);
-            console.log("Lesson updated successfully", response.data);
-            fetchSchedule(selectedGroup);
+            const updatedGroups = editedSchedule.flatMap(week => 
+                week.groups.map(group => 
+                    group.days.map(day => ({
+                        group: group.group,
+                        day: day.day,
+                        lessons: day.lessons
+                    }))
+                )
+            ).flat();
+    
+            for (const updatedGroup of updatedGroups) {
+                await axios.put(`http://localhost:8000/schedule/group/${encodeURIComponent(updatedGroup.group)}/day/${encodeURIComponent(updatedGroup.day)}`, updatedGroup.lessons);
+            }
+    
+            console.log("Schedule updated successfully");
+            setSchedule(editedSchedule);
         } catch (error) {
-            console.error("Error updating lesson", error);
+            console.error("Error updating schedule", error);
         }
     };
+    
 
     return (
         <div>
@@ -84,21 +106,21 @@ const AdminPanel = () => {
                         <button onClick={() => handleGroupClick(group)}>{group}</button>
                         {selectedGroup === group && schedule && (
                             <div>
-                                {schedule.map((weekSchedule, index) => (
-                                    <div key={index} className={styles.week}>
+                                {schedule.map((weekSchedule, weekIndex) => (
+                                    <div key={weekIndex} className={styles.week}>
                                         <div className={styles.weekTitle}>
                                             {weekSchedule.week}
                                         </div>
                                         {weekSchedule.groups.map((groupSchedule, groupIndex) => (
-                                            <div key={groupIndex}>
+                                            <div key={`${weekIndex}-${groupIndex}`} className={styles.group}>
                                                 {groupSchedule.days.map((daySchedule, dayIndex) => (
-                                                    <div key={dayIndex} className={styles.day}>
+                                                    <div key={`${weekIndex}-${groupIndex}-${dayIndex}`} className={styles.day}>
                                                         <span className={styles.dayNumber}>
                                                             {daySchedule.day}
                                                         </span>
                                                         <div>
                                                             {daySchedule.lessons.map((lesson, lessonIndex) => (
-                                                                <li key={lessonIndex} className={styles.lessonTitle}>
+                                                                <li key={`${weekIndex}-${groupIndex}-${dayIndex}-${lessonIndex}`} className={styles.lessonTitle}>
                                                                     <span className={styles.number}>
                                                                         {lesson.number}
                                                                     </span>
@@ -109,30 +131,21 @@ const AdminPanel = () => {
                                                                         type="text"
                                                                         value={lesson.lesson}
                                                                         onChange={(e) =>
-                                                                            handleEditLesson(lesson.lessonId, {
-                                                                                ...lesson,
-                                                                                lesson: e.target.value
-                                                                            })
+                                                                            handleEditChange(weekIndex, groupIndex, dayIndex, lessonIndex, 'lesson', e.target.value)
                                                                         }
                                                                     />
                                                                     <input
                                                                         type="text"
                                                                         value={lesson.teacher}
                                                                         onChange={(e) =>
-                                                                            handleEditLesson(lesson.lessonId, {
-                                                                                ...lesson,
-                                                                                teacher: e.target.value
-                                                                            })
+                                                                            handleEditChange(weekIndex, groupIndex, dayIndex, lessonIndex, 'teacher', e.target.value)
                                                                         }
                                                                     />
                                                                     <input
                                                                         type="text"
                                                                         value={lesson.classroom}
                                                                         onChange={(e) =>
-                                                                            handleEditLesson(lesson.lessonId, {
-                                                                                ...lesson,
-                                                                                classroom: e.target.value
-                                                                            })
+                                                                            handleEditChange(weekIndex, groupIndex, dayIndex, lessonIndex, 'classroom', e.target.value)
                                                                         }
                                                                     />
                                                                 </li>
@@ -144,6 +157,7 @@ const AdminPanel = () => {
                                         ))}
                                     </div>
                                 ))}
+                                <button onClick={handleSave}>Сохранить</button>
                             </div>
                         )}
                     </div>

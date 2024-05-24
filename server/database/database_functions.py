@@ -230,3 +230,52 @@ def compare_schedules(schedule1, schedule2):
     return True
 
 # ====================================================================================
+
+from pydantic import BaseModel
+
+class LessonUpdate(BaseModel):
+    id: str  # Добавим поле id
+    lesson: str
+    teacher: str
+    classroom: str
+    number: str
+    time_lesson: str
+
+def update_group_schedule_in_db(group: str, day: str, schedule_update: list[LessonUpdate]):
+    db = SessionLocal()
+
+    try:
+        # Найти группу и день по имени
+        group_obj = db.query(GroupModel).filter(GroupModel.group == group).first()
+        if not group_obj:
+            raise HTTPException(status_code=404, detail=f"Group '{group}' not found")
+
+        day_obj = db.query(DayModel).filter(DayModel.day == day, DayModel.group_id == group_obj.id).first()
+        if not day_obj:
+            raise HTTPException(status_code=404, detail=f"Day '{day}' for group '{group}' not found")
+
+        # Удаление старых данных для данного дня
+        db.query(LessonModel).filter(LessonModel.day_id == day_obj.id).delete()
+        db.commit()
+
+        # Добавление новых данных
+        for lesson_data in schedule_update:
+            lesson = LessonModel(
+                number=lesson_data.number,
+                time_lesson=lesson_data.time_lesson,
+                lesson=lesson_data.lesson,
+                teacher=lesson_data.teacher,
+                classroom=lesson_data.classroom,
+                day_id=day_obj.id
+            )
+            db.add(lesson)
+        db.commit()
+
+    except IntegrityError as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        db.close()
