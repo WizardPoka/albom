@@ -59,7 +59,7 @@ const UploadFile = ({ setSchedule }) => {
       {/* Кнопка для отправки файла на сервер */}
       
       <button onClick={handleSubmit}>Загрузить расписание</button>
-      <button onClick={handleSubmit}>Перейти к расписанию</button>
+    
       </div>
     </div>
   );

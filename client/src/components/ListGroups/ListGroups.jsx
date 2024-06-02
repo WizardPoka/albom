@@ -54,8 +54,8 @@ const ListGroups = ({ schedule }) => {
   return (
     <div className={styles.container}>
 
-        <div>
-            <h1>Поиск Расписания Преподавателей</h1>
+        <div className={styles.listHeader}>
+            {/* <div className={styles.title}>Поиск:</div> */}
             <TeacherSearch setTeacherSchedule={setTeacherSchedule} />
             {/* <TeacherSchedule schedule={teacherSchedule} /> */}
         </div>

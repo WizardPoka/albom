@@ -12,6 +12,12 @@
   font-family: "GolosText-Regular" ;
 }
 
+.title {
+  font-size: 2rem;
+  font-weight: bold;
+  
+}
+
 .listHeader {
   display: flex;
   justify-content: space-between;
@@ -20,6 +26,7 @@
   margin: 30px 100px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   font-size: 1.2rem;
+  align-items: center;
 }
 
 /* .listHeader {
