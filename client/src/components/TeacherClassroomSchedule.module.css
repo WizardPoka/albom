@@ -1,4 +1,4 @@
-/* TeacherSchedule.module.css */
+/* TeacherClassroomSchedule.module.css */
 
 .scheduleContainer {
     display: flex;
@@ -48,8 +48,8 @@
 
 .scheduleDetailsContainer {
     margin-bottom: 10px;
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 10px;
 }
 
@@ -59,9 +59,13 @@
     border-radius: 8px;
     padding: 10px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
 .scheduleDetails {
     font-size: 1rem;
     margin: 0;
+    word-wrap: break-word;
 }

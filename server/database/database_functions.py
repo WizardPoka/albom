@@ -223,3 +223,45 @@ def get_teacher_schedule_from_db(teacher: str):
         return teacher_schedule
     finally:
         db.close()
+
+
+def get_classroom_schedule_from_db(classroom: str):
+    db = SessionLocal()
+    classroom_schedule = []
+    try:
+        lessons = db.query(LessonModel).filter(LessonModel.classroom == classroom).all()
+        for lesson in lessons:
+            day = db.query(DayModel).filter(DayModel.id == lesson.day_id).first()
+            group = db.query(GroupModel).filter(GroupModel.id == day.group_id).first()
+            week = db.query(WeekModel).filter(WeekModel.id == group.week_id).first()
+            classroom_schedule.append({
+                "week": week.week,
+                "group": group.group,
+                "day": day.day,
+                "number": lesson.number,
+                "time_lesson": lesson.time_lesson,
+                "lesson": lesson.lesson,
+                "classroom": lesson.classroom
+            })
+        return classroom_schedule
+    finally:
+        db.close()
+
+
+def search_teachers_and_classrooms(query: str):
+    db = SessionLocal()
+    try:
+        # Поиск преподавателей
+        teachers = db.query(LessonModel.teacher).filter(LessonModel.teacher.like(f'{query}%')).distinct().all()
+        teacher_results = [teacher[0] for teacher in teachers]
+        
+        # Поиск аудиторий
+        classrooms = db.query(LessonModel.classroom).filter(LessonModel.classroom.like(f'{query}%')).distinct().all()
+        classroom_results = [classroom[0] for classroom in classrooms]
+
+        return {
+            "teachers": teacher_results,
+            "classrooms": classroom_results
+        }
+    finally:
+        db.close()

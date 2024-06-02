@@ -17,7 +17,8 @@ from .database.database_functions import (start_database,
                                           read_schedule_from_db, 
                                           save_schedule_to_db,  
                                           read_all_groups_from_db,
-                                          search_teachers_in_db, get_teacher_schedule_from_db)
+                                          search_teachers_in_db, search_teachers_and_classrooms, 
+                                          get_teacher_schedule_from_db, get_classroom_schedule_from_db)
 
 # ====================================================================================
 
@@ -221,16 +222,12 @@ async def get_all_groups():
 
 # ====================================================================================
 
-@app.get("/search/teachers/")
-async def search_teachers(query: str):
-    teachers = search_teachers_in_db(query)
-    if not teachers:
-        raise HTTPException(status_code=404, detail="Преподаватели не найдены")
-    
-    filtered_teachers = [teacher for teacher in teachers if query.lower() in teacher.lower()]
-    return filtered_teachers
-
-# ====================================================================================
+@app.get("/search/")
+async def search(query: str):
+    results = search_teachers_and_classrooms(query)
+    if not results["teachers"] and not results["classrooms"]:
+        raise HTTPException(status_code=404, detail="Преподаватели или аудитории не найдены")
+    return results
 
 @app.get("/schedule/teacher/{teacher}")
 async def get_teacher_schedule(teacher: str):
@@ -238,3 +235,10 @@ async def get_teacher_schedule(teacher: str):
     if not teacher_schedule:
         raise HTTPException(status_code=404, detail=f"Расписание для преподавателя '{teacher}' не найдено")
     return teacher_schedule
+
+@app.get("/schedule/classroom/{classroom}")
+async def get_classroom_schedule(classroom: str):
+    classroom_schedule = get_classroom_schedule_from_db(classroom)
+    if not classroom_schedule:
+        raise HTTPException(status_code=404, detail=f"Расписание для аудитории '{classroom}' не найдено")
+    return classroom_schedule

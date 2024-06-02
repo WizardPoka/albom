@@ -1,0 +1,52 @@
+/* Search.module.css */
+
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 20px;
+}
+
+.input {
+    width: 300px;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.notFound {
+    color: red;
+    margin-top: 10px;
+}
+
+.resultsContainer {
+    width: 100%;
+    max-width: 600px;
+}
+
+.resultsBlock {
+    margin-bottom: 20px;
+}
+
+.resultsBlock h3 {
+    margin-bottom: 10px;
+}
+
+.list {
+    list-style-type: none;
+    padding: 0;
+}
+
+.listItem {
+    padding: 10px;
+    margin: 5px 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.listItem:hover {
+    background-color: #f0f0f0;
+}

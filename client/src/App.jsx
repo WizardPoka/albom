@@ -10,6 +10,7 @@ import UploadFile from './components/UploadFile/UploadFile';
 import GroupSchedule from './components/GroupSchedule/GroupSchedule';
 import ListGroups from './components/ListGroups/ListGroups';
 import TeacherSchedulePage from './components/TeacherSchedulePage';
+import ClassroomSchedulePage from './components/ClassroomSchedulePage'; 
 // ====================================================================================
 
 const App = () => {
@@ -30,6 +31,7 @@ const App = () => {
         <Route path="/groups" element={<ListGroups schedule={schedule} />} /> 
         <Route path="/schedule/group/:group" element={<GroupSchedule />} />
         <Route path="/schedule/teacher/:teacher" element={<TeacherSchedulePage />} />
+        <Route path="/schedule/classroom/:classroom" element={<ClassroomSchedulePage />} />
       </Routes>
   );
 };

@@ -1,4 +1,4 @@
-// TeacherSchedule.jsx
+// ClassroomSchedule.jsx
 
 import React from 'react';
 import styles from './TeacherClassroomSchedule.module.css';
@@ -10,9 +10,9 @@ const groupBy = (array, key) => {
     }, {});
 };
 
-const TeacherSchedule = ({ schedule }) => {
+const ClassroomSchedule = ({ schedule }) => {
     const weeks = groupBy(schedule, 'week');
-    
+
     return (
         <div className={styles.scheduleContainer}>
             {Object.keys(weeks).map(week => {
@@ -50,4 +50,5 @@ const TeacherSchedule = ({ schedule }) => {
     );
 };
 
-export default TeacherSchedule;
+export default ClassroomSchedule;
+

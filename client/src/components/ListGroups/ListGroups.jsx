@@ -5,7 +5,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
-import TeacherSearch from '../TeacherSearch';
+import Search from '../Search';
 import TeacherSchedule from '../TeacherSchedule';
 
 import '../../fonts/Golos_Text/GolosText-Regular.ttf'
@@ -56,7 +56,7 @@ const ListGroups = ({ schedule }) => {
 
         <div className={styles.listHeader}>
             {/* <div className={styles.title}>Поиск:</div> */}
-            <TeacherSearch setTeacherSchedule={setTeacherSchedule} />
+            <Search setTeacherSchedule={setTeacherSchedule} />
             {/* <TeacherSchedule schedule={teacherSchedule} /> */}
         </div>
 
